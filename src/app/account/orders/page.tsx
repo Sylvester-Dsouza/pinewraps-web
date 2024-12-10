@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { formatPrice } from "@/lib/utils";
 import { STORE_INFO } from "@/lib/constants";
@@ -16,13 +16,6 @@ interface OrderItem {
   quantity: number;
   variant?: string;
   cakeWriting?: string;
-}
-
-interface DeliveryInfo {
-  type: string;
-  requestedDate: string;
-  requestedTime: string;
-  instructions?: string;
 }
 
 interface Order {
@@ -41,23 +34,11 @@ interface Order {
   deliveryInstructions?: string;
   paymentMethod: string;
   paymentStatus?: string;
+  pointsRedeemed?: number;
+  discountAmount?: number;
   rewards?: {
     pointsEarned: number;
     tier: string;
-  };
-  snapshotData?: {
-    customerInformation: {
-      name: string;
-      email: string;
-      phone: string;
-    };
-    shippingAddress: {
-      street?: string;
-      apartment?: string;
-      emirate?: string;
-      city?: string;
-      pincode?: string;
-    };
   };
   customer?: {
     name: string;
@@ -82,39 +63,6 @@ interface Order {
 function OrderDetailsModal({ order, onClose }: { order: Order; onClose: () => void }) {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
-
-  const isWithin6Hours = () => {
-    const orderDate = new Date(order.date || order.createdAt);
-    const now = new Date();
-    const hoursDiff = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
-    return hoursDiff <= 6;
-  };
-
-  const handleCancelOrder = async () => {
-    if (!user || !confirm('Are you sure you want to cancel this order?')) return;
-
-    try {
-      setIsLoading(true);
-      const token = await user.getIdToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders/${order.id}/cancel`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to cancel order');
-      }
-
-      window.location.reload();
-    } catch (error) {
-      console.error('Error canceling order:', error);
-      toast.error('Failed to cancel order');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -152,7 +100,7 @@ function OrderDetailsModal({ order, onClose }: { order: Order; onClose: () => vo
               <div className="space-y-1 text-sm">
                 <p>{order.customer?.name}</p>
                 <p className="text-gray-600">{order.customer?.email}</p>
-                <p className="text-gray-600">{order.customerPhone}</p>
+                <p className="text-gray-600">{order.customer?.phone}</p>
               </div>
             </div>
 
@@ -244,21 +192,21 @@ function OrderDetailsModal({ order, onClose }: { order: Order; onClose: () => vo
             <div className="p-3 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>{formatPrice(order.subtotal)}</span>
+                <span>{formatPrice(order.total)}</span>
               </div>
               {order.deliveryMethod === 'DELIVERY' && (
                 <div className="flex justify-between">
-                  <span>Delivery Fee</span>
-                  <span>{formatPrice(order.deliveryCharge || 30)}</span>
+                  <span>Delivery Method</span>
+                  <span>Delivery</span>
                 </div>
               )}
-              {order.pointsRedeemed > 0 && (
+              {order.pointsRedeemed && order.pointsRedeemed > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Points Redeemed</span>
                   <span>-{formatPrice(order.pointsRedeemed * 0.25)}</span>
                 </div>
               )}
-              {order.discountAmount > 0 && (
+              {order.discountAmount && order.discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
                   <span>-{formatPrice(order.discountAmount)}</span>
@@ -272,36 +220,23 @@ function OrderDetailsModal({ order, onClose }: { order: Order; onClose: () => vo
           </div>
 
           {/* Rewards & Points */}
-          {(order.pointsEarned > 0 || order.pointsRedeemed > 0) && (
+          {((order.rewards?.pointsEarned ?? 0) > 0 || (order.pointsRedeemed ?? 0) > 0) && (
             <div className="border rounded-lg overflow-hidden">
               <h3 className="font-medium p-3 bg-gray-50 text-sm">Rewards & Points</h3>
               <div className="p-3 space-y-2 text-sm">
-                {order.pointsEarned > 0 && (
+                {order.rewards?.pointsEarned && order.rewards.pointsEarned > 0 && (
                   <div className="flex justify-between">
                     <span>Points Earned</span>
-                    <span className="text-green-600">+{order.pointsEarned} points</span>
+                    <span className="text-green-600">+{order.rewards.pointsEarned} points</span>
                   </div>
                 )}
-                {order.pointsRedeemed > 0 && (
+                {order.pointsRedeemed && order.pointsRedeemed > 0 && (
                   <div className="flex justify-between">
                     <span>Points Redeemed</span>
                     <span className="text-gray-600">{order.pointsRedeemed} points</span>
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {/* Cancel Button */}
-          {order.status === 'PENDING' && isWithin6Hours() && (
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={handleCancelOrder}
-                disabled={isLoading}
-                className="px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                {isLoading ? 'Cancelling...' : 'Cancel Order'}
-              </button>
             </div>
           )}
         </div>
@@ -311,42 +246,8 @@ function OrderDetailsModal({ order, onClose }: { order: Order; onClose: () => vo
 }
 
 function OrderCard({ order }: { order: Order }) {
-  const [isLoading, setIsLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const { user } = useAuth();
-
-  const isWithin6Hours = () => {
-    const orderDate = new Date(order.date || order.createdAt);
-    const now = new Date();
-    const hoursDiff = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
-    return hoursDiff <= 6;
-  };
-
-  const handleCancelOrder = async () => {
-    if (!user || !confirm('Are you sure you want to cancel this order?')) return;
-
-    try {
-      setIsLoading(true);
-      const token = await user.getIdToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders/${order.id}/cancel`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to cancel order');
-      }
-
-      window.location.reload();
-    } catch (error) {
-      console.error('Error canceling order:', error);
-      toast.error('Failed to cancel order');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -356,7 +257,7 @@ function OrderCard({ order }: { order: Order }) {
           <p className="text-sm text-gray-500">
             {new Date(order.date || order.createdAt).toLocaleDateString()}
           </p>
-          {order.rewards && (
+          {order.rewards && order.rewards.pointsEarned && order.rewards.pointsEarned > 0 && (
             <p className="text-sm text-green-600 mt-1">
               +{order.rewards.pointsEarned} points earned
             </p>
@@ -416,7 +317,7 @@ function OrderCard({ order }: { order: Order }) {
         </div>
       )}
 
-      {order.rewards && (
+      {order.rewards && order.rewards.pointsEarned && order.rewards.pointsEarned > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-600">Points earned:</span>
@@ -435,15 +336,6 @@ function OrderCard({ order }: { order: Order }) {
         >
           View Details
         </button>
-        {order.status === 'PENDING' && isWithin6Hours() && (
-          <button
-            onClick={handleCancelOrder}
-            disabled={isLoading}
-            className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 transition-colors"
-          >
-            {isLoading ? 'Canceling...' : 'Cancel Order'}
-          </button>
-        )}
       </div>
 
       {showDetails && (
@@ -459,11 +351,7 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchOrders();
-  }, [user]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -482,7 +370,7 @@ export default function OrdersPage() {
       }
 
       const data = await response.json();
-      console.log('API Response:', data); // Debug log
+      toast.success('Orders fetched successfully');
 
       // Ensure we have an array of orders
       let ordersList: Order[] = [];
@@ -505,7 +393,11 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   if (isLoading) {
     return (

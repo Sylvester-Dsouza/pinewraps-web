@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
-import { formatDate, calculateNextTierProgress, TIER_BENEFITS, TIER_COLORS, calculateTier, TIER_THRESHOLDS } from '@/lib/utils';
+import { formatDate, calculateNextTierProgress, TIER_BENEFITS, TIER_COLORS, calculateTier } from '@/lib/utils';
 
 interface RewardHistory {
   id: string;
@@ -54,7 +54,6 @@ export default function RewardsPage() {
         }
 
         const data = await response.json();
-        console.log('Rewards data:', data);
         if (data.success && data.data) {
           // Calculate the correct tier based on total points
           const totalPoints = data.data.totalPoints || 0;
@@ -65,7 +64,6 @@ export default function RewardsPage() {
             tier: calculatedTier // Override the tier with calculated value
           });
         } else {
-          console.error('Invalid rewards data format:', data);
           throw new Error('Invalid response format');
         }
       } catch (error) {

@@ -1,45 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/firebase-admin';
 
-export async function GET(request: NextRequest) {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+export async function GET(request: Request) {
   try {
-    // Forward the authorization header from the client
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Verify the token and forward to API
+    const token = authHeader.split('Bearer ')[1];
+    await auth.verifyIdToken(token);
+
     // Forward the request to the API server
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/rewards`;  
-    console.log('Fetching rewards from:', apiUrl);
-    
-    const response = await fetch(apiUrl, {
+    const response = await fetch(`${API_URL}/api/rewards`, {
       headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${token}`
       }
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      });
-      throw new Error(`API responded with status ${response.status}: ${errorText}`);
-    }
-
     const data = await response.json();
-    if (!data.success || !data.data) {
-      console.error('Invalid API response format:', data);
-      throw new Error('Invalid response format from API');
-    }
-    
     return NextResponse.json(data);
+
   } catch (error) {
-    console.error('Error in rewards API route:', error);
+    console.error('Error fetching rewards:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch rewards', details: error.message },
+      { error: 'Failed to fetch rewards' },
       { status: 500 }
     );
   }

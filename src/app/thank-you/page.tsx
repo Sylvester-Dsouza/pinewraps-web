@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { PaymentService } from '@/services/payment.service';
 
-export default function ThankYouPage() {
+function ThankYouContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orderDetails, setOrderDetails] = useState<any>(null);
@@ -49,50 +49,61 @@ export default function ThankYouPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-4 border-black border-t-transparent rounded-full"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
       </div>
     );
+  }
+
+  if (!orderDetails) {
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-          {/* Success Icon */}
-          <div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+        <div className="bg-white rounded-2xl p-8 shadow-sm">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold mb-4">Thank You for Your Order!</h1>
+            <p className="text-gray-600">
+              Your order has been successfully placed and confirmed.
+            </p>
           </div>
 
-          {/* Thank You Message */}
-          <h1 className="text-3xl font-bold mb-4">Thank You for Your Order!</h1>
-          <p className="text-gray-600 text-lg mb-8">
-            Your order has been successfully placed and will be processed shortly.
-          </p>
-
-          {/* Order Details */}
-          {orderDetails && (
-            <div className="text-left mb-8">
-              <h2 className="text-xl font-semibold mb-4">Order Details</h2>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <p><span className="font-medium">Order Number:</span> {orderDetails.orderNumber}</p>
-                <p><span className="font-medium">Amount:</span> AED {orderDetails.amount}</p>
-                <p><span className="font-medium">Payment Status:</span> {orderDetails.status || 'Successful'}</p>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Order Details</h2>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-gray-600">Order ID: {orderDetails.orderId}</p>
+                <p className="text-gray-600">
+                  Total Amount: AED {orderDetails.amount?.toFixed(2)}
+                </p>
               </div>
             </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="space-y-4">
-            <Link href="/orders" className="block">
-              <Button className="w-full bg-black text-white">
-                View Order Details
+            <div>
+              <h2 className="text-lg font-semibold mb-2">What's Next?</h2>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <p className="text-gray-600">
+                  1. You will receive an order confirmation email shortly.
+                </p>
+                <p className="text-gray-600">
+                  2. You can track your order status in your account.
+                </p>
+                <p className="text-gray-600">
+                  3. We will notify you when your order is ready.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/account/orders">
+              <Button variant="default" className="w-full sm:w-auto">
+                View Order
               </Button>
             </Link>
-            
-            <Link href="/" className="block">
-              <Button variant="outline" className="w-full">
+            <Link href="/">
+              <Button variant="outline" className="w-full sm:w-auto">
                 Continue Shopping
               </Button>
             </Link>
@@ -100,5 +111,19 @@ export default function ThankYouPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ThankYouPage() {
+  return (
+    <Suspense 
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+        </div>
+      }
+    >
+      <ThankYouContent />
+    </Suspense>
   );
 }

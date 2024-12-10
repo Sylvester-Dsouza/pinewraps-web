@@ -420,17 +420,16 @@ export default function CheckoutPage() {
                   {state.items.map((item) => (
                     <div key={`${item.id}-${item.variant || ''}-${item.cakeWriting || ''}`} className="py-4 flex space-x-4">
                       <div className="relative h-20 w-20 rounded-md overflow-hidden bg-gray-100">
-                        {item.image ? (
+                        {item.imageUrl ? (
                           <Image
-                            src={item.image}
+                            src={item.imageUrl}
                             alt={item.name}
                             fill
                             className="object-cover"
-                            sizes="80px"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <ShoppingBag className="h-8 w-8" />
+                          <div className="h-full w-full flex items-center justify-center bg-gray-100">
+                            <span className="text-gray-400">No image</span>
                           </div>
                         )}
                       </div>

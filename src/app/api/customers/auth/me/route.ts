@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
 
     // Forward the request to the API server
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/customers/auth/me`;
-    console.log('Fetching customer data from:', apiUrl);
     
     const response = await fetch(apiUrl, {
       headers: {
@@ -34,7 +33,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in customer auth route:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch customer data', details: error.message },
+      { 
+        error: 'Failed to fetch customer data', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

@@ -5,16 +5,18 @@ import ProductPricing from '@/components/shop/product-pricing';
 import Link from 'next/link';
 import { getProductBySlug, generateSlug } from '@/services/api';
 
-interface Props {
-  params: {
+type PageProps = {
+  params: Promise<{
     slug: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+  }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+type ParamCheck<T> = T extends Promise<infer U> ? U : T;
 
 // Generate metadata for the page
 export async function generateMetadata(
-  { params, searchParams }: Props,
+  { params, searchParams }: ParamCheck<PageProps>,
 ): Promise<Metadata> {
   const slug = params.slug;
   
@@ -45,17 +47,20 @@ export async function generateMetadata(
   }
 }
 
-export default async function ProductPage({ params, searchParams }: Props) {
+export default async function ProductPage({ 
+  params, 
+  searchParams 
+}: ParamCheck<PageProps>) {
   const slug = params.slug;
   
   if (!slug) {
-    notFound();
+    return notFound();
   }
 
   try {
     const product = await getProductBySlug(slug);
     if (!product) {
-      notFound();
+      return notFound();
     }
 
     // Verify the slug matches the current product name
@@ -114,6 +119,6 @@ export default async function ProductPage({ params, searchParams }: Props) {
     );
   } catch (error) {
     console.error('Error loading product:', error);
-    notFound();
+    return notFound();
   }
 }

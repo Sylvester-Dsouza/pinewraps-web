@@ -1,52 +1,41 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/firebase-admin';
-import prisma from '@/lib/prisma';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+type RouteContext = {
+  params: Promise<{
+    orderId: string;
+  }>;
+};
+
+type ParamCheck<T> = T extends Promise<infer U> ? U : T;
 
 export async function GET(
-  request: Request,
-  { params }: { params: { orderId: string } }
-) {
+  request: NextRequest,
+  context: ParamCheck<RouteContext>
+): Promise<NextResponse> {
   try {
-    // Get the authorization header
+    const { orderId } = await context.params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify the token
+    // Verify the token and forward to API
     const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await auth.verifyIdToken(token);
+    await auth.verifyIdToken(token);
 
-    // Get the order from the database
-    const order = await prisma.order.findUnique({
-      where: {
-        id: params.orderId
-      },
-      include: {
-        items: true,
-        delivery: true
+    // Forward the request to the API server
+    const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
     });
 
-    if (!order) {
-      return NextResponse.json(
-        { error: 'Order not found' },
-        { status: 404 }
-      );
-    }
+    const data = await response.json();
+    return NextResponse.json(data);
 
-    // Verify the user owns this order
-    if (order.userEmail !== decodedToken.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: order
-    });
   } catch (error) {
     console.error('Error fetching order:', error);
     return NextResponse.json(

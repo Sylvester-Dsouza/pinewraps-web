@@ -15,11 +15,10 @@ export default function AddressesPage() {
   const [addressToEdit, setAddressToEdit] = useState<UserAddress | null>(null);
 
   useEffect(() => {
-    console.log('Fetching addresses...');
     fetchAddresses().then(() => {
-      console.log('Addresses fetched:', addresses);
-    }).catch(error => {
-      console.error('Error fetching addresses:', error);
+      toast.success('Addresses fetched');
+    }).catch(() => {
+      toast.error('Error fetching addresses');
     });
   }, [fetchAddresses]);
 
@@ -28,7 +27,7 @@ export default function AddressesPage() {
       await deleteAddress(addressId);
       await fetchAddresses(); // Refresh the list after deletion
       toast.success('Address deleted successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete address');
     }
   };
@@ -38,7 +37,7 @@ export default function AddressesPage() {
       await setDefaultAddress(addressId);
       await fetchAddresses(); // Refresh the list after setting default
       toast.success('Default address updated');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update default address');
     }
   };
@@ -52,9 +51,6 @@ export default function AddressesPage() {
     setIsDialogOpen(false);
     setAddressToEdit(null);
   };
-
-  console.log('Current addresses:', addresses);
-  console.log('Loading state:', loading);
 
   return (
     <div className="container max-w-4xl py-8">
@@ -89,7 +85,7 @@ export default function AddressesPage() {
                   </div>
                   <p className="text-gray-500 mt-1">
                     {address.apartment && `${address.apartment}, `}
-                    {address.emirates}
+                    {address.emirate}
                   </p>
                 </div>
               </div>
@@ -134,6 +130,7 @@ export default function AddressesPage() {
             onSuccess={async () => {
               handleCloseDialog();
               await fetchAddresses(); // Refresh the list after adding/editing
+              toast.success('Address added/edited successfully');
             }}
             existingAddress={addressToEdit}
           />

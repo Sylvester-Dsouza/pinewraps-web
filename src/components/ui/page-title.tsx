@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 interface PageTitleProps {
   title?: string;
+  description?: string;
   children?: React.ReactNode;
   breadcrumbs?: Array<{
     label: string;
@@ -9,13 +10,16 @@ interface PageTitleProps {
   }>;
 }
 
-const PageTitle = ({ title, children, breadcrumbs }: PageTitleProps) => {
+const PageTitle = ({ title, description, children, breadcrumbs }: PageTitleProps) => {
   const displayTitle = title || children;
   
   return (
     <div className="bg-black text-white py-12 w-full">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">{displayTitle}</h1>
+        {description && (
+          <p className="text-gray-300 text-lg mb-4">{description}</p>
+        )}
         {breadcrumbs && breadcrumbs.length > 0 && (
           <div className="flex items-center justify-center space-x-2 text-sm text-gray-300">
             {breadcrumbs.map((crumb, index) => (

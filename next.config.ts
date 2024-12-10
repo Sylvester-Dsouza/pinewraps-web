@@ -23,10 +23,6 @@ const nextConfig: NextConfig = {
   env: {
     PORT: '3002',
   },
-  // Ensure server only listens on port 3002
-  server: {
-    port: 3002,
-  },
 };
 
 export default nextConfig;

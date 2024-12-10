@@ -7,7 +7,8 @@ export async function POST(request: NextRequest) {
     const { token } = await request.json()
 
     // Set the cookie
-    cookies().set('__session', token, {
+    const cookiesStore = await cookies()
+    cookiesStore.set('__session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -25,7 +26,8 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   try {
     // Remove the cookie
-    cookies().delete('__session')
+    const cookiesStore = await cookies()
+    cookiesStore.delete('__session')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error removing session cookie:', error)

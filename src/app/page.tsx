@@ -16,7 +16,7 @@ type Product = {
 async function getNewArrivals(): Promise<Product[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/public?limit=8&sort=createdAt:desc`, {
-      cache: 'no-store'
+      next: { revalidate: 3600 } // Revalidate every hour
     });
     
     if (!res.ok) {
@@ -30,6 +30,8 @@ async function getNewArrivals(): Promise<Product[]> {
     return [];
   }
 }
+
+export const revalidate = 3600; // Revalidate the page every hour
 
 export default async function Home() {
   // Fetch new arrivals

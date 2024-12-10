@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { XCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useCart } from '@/hooks/useCart';
 
-export default function CheckoutErrorPage() {
+function CheckoutErrorContent() {
   const searchParams = useSearchParams();
   const { clearCart } = useCart();
   const message = searchParams.get('message') || 'An error occurred during checkout';
@@ -46,5 +46,19 @@ export default function CheckoutErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutErrorPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+        </div>
+      }
+    >
+      <CheckoutErrorContent />
+    </Suspense>
   );
 }

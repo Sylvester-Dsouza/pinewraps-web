@@ -24,6 +24,7 @@ export interface Product {
   sku: string;
   status: 'ACTIVE' | 'INACTIVE';
   basePrice: number;
+  slug: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string | null;

@@ -5,13 +5,21 @@ import { useCart } from '@/contexts/cart-context';
 import { formatPrice } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 
-export default function CartSummary() {
+interface CartSummaryProps {
+  onCheckout?: () => void;
+}
+
+export default function CartSummary({ onCheckout }: CartSummaryProps) {
   const router = useRouter();
   const { state } = useCart();
   const total = state.total;
 
   const handleCheckout = () => {
-    router.push('/checkout');
+    if (onCheckout) {
+      onCheckout();
+    } else {
+      router.push('/checkout');
+    }
   };
 
   return (
