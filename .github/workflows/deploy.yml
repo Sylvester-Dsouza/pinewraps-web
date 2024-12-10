@@ -14,10 +14,10 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '22.11.0'
           
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
           
       - name: Build
         run: npm run build
@@ -29,26 +29,7 @@ jobs:
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-          
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          
-      - name: Build container image
-        run: docker build -t registry.digitalocean.com/pinewraps/web:$(echo $GITHUB_SHA | head -c7) .
-          
-      - name: Push image to DO Container Registry
+
+      - name: Deploy to Coolify
         run: |
-          doctl registry login
-          docker push registry.digitalocean.com/pinewraps/web:$(echo $GITHUB_SHA | head -c7)
-          
-      - name: Update deployment file
-        run: |
-          TAG=$(echo $GITHUB_SHA | head -c7)
-          sed -i 's|<IMAGE>|registry.digitalocean.com/pinewraps/web:'${TAG}'|' $GITHUB_WORKSPACE/k8s/deployment.yml
-          
-      - name: Deploy to DigitalOcean Kubernetes
-        run: |
-          doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.CLUSTER_NAME }}
-          kubectl apply -f $GITHUB_WORKSPACE/k8s/deployment.yml
+          curl -X POST ${{ secrets.COOLIFY_URL }}/api/v1/deploy/${{ secrets.COOLIFY_TOKEN }}
