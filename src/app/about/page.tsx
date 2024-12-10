@@ -24,7 +24,7 @@ export default function AboutPage() {
             <h3 className="text-2xl font-bold mb-4">Our Mission</h3>
             <p className="mb-6">
               Our mission is to bring joy and celebration to every occasion through our artisanal 
-              creations. We believe that every celebration deserves something special, and that's 
+              creations. We blieve that every celebration deserves something special, and that's 
               what we strive to deliver with every order.
             </p>
 
