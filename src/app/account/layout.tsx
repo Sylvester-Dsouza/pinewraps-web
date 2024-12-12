@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useRouter } from 'next/router'
-import { useAuth } from '@/lib/auth'
+import { usePathname, redirect } from 'next/navigation'
+import { useAuth } from '@/contexts/auth-context'
 import PageTitle from '@/components/ui/page-title'
 import { User, Package, HeadphonesIcon, MapPin, Award } from 'lucide-react'
+import { useEffect } from 'react'
 
 const accountTabs = [
   {
@@ -42,13 +42,12 @@ export default function AccountLayout({
 }) {
   const pathname = usePathname()
   const { user, loading } = useAuth()
-  const router = useRouter()
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push(`/auth/login?from=${pathname}`)
+      window.location.href = `/auth/login?from=${pathname}`
     }
-  }, [loading, user, router, pathname])
+  }, [loading, user, pathname])
 
   if (loading) {
     return (
