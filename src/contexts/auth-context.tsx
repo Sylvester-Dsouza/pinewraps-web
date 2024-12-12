@@ -63,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchCustomerData = async (token: string) => {
     try {
+      console.log('Fetching customer data...');
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -70,7 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch customer data');
+        const errorData = await response.json().catch(() => null);
+        console.error('Error fetching customer data:', { status: response.status, data: errorData });
+        throw new Error(errorData?.error?.message || 'Failed to fetch customer data');
       }
 
       const responseData = await response.json();
@@ -166,23 +169,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
+      console.log('Starting Google sign in...');
+      
       // Configure Google provider
       googleProvider.setCustomParameters({
         prompt: 'select_account'
       });
 
+      console.log('Opening Google popup...');
       const result = await signInWithPopup(auth, googleProvider).catch((error) => {
+        console.error('Google popup error:', error);
         if (error.code === 'auth/popup-closed-by-user') {
           throw new Error('Sign in cancelled by user');
+        }
+        if (error.code === 'auth/unauthorized-domain') {
+          throw new Error('This domain is not authorized for sign-in. Please contact support.');
         }
         throw error;
       });
       
+      console.log('Getting ID token...');
       const token = await result.user.getIdToken();
       
       // Store the token
       setAuthToken(token);
       
+      console.log('Calling backend social auth...');
       // Call the backend social auth endpoint
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/auth/social`, {
         method: 'POST',
@@ -192,41 +204,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         body: JSON.stringify({
           token,
-          provider: 'GOOGLE'
+          provider: 'GOOGLE',
+          email: result.user.email,
+          firstName: result.user.displayName?.split(' ')[0] || '',
+          lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+          imageUrl: result.user.photoURL || ''
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to authenticate with backend');
+        const errorData = await response.json().catch(() => null);
+        console.error('Backend auth error:', { status: response.status, data: errorData });
+        throw new Error(errorData?.error?.message || 'Failed to authenticate with backend');
       }
 
       const data = await response.json();
-      
-      if (data.success) {
-        // Set the user state
-        setUser(result.user);
-        
-        // Set customer data
+      console.log('Backend auth success:', data);
+
+      // Set customer data
+      if (data.success && data.data?.customer) {
         setCustomerData({
           firstName: data.data.customer.firstName,
           lastName: data.data.customer.lastName,
           phone: data.data.customer.phone || '',
           dateOfBirth: data.data.customer.dateOfBirth || ''
         });
-        
-        toast.success('Signed in successfully');
-        return result.user;
-      } else {
-        throw new Error(data.error?.message || 'Authentication failed');
       }
+
+      // Set session cookie
+      await setSessionCookie(result.user);
+
+      return result.user;
     } catch (error: any) {
-      console.error('Error signing in with Google:', error);
+      console.error('Sign in error:', error);
       clearAuthToken();
-      if (error.message === 'Sign in cancelled by user') {
-        toast.error('Sign in cancelled');
-      } else {
-        toast.error('Failed to sign in with Google');
-      }
       throw error;
     }
   };

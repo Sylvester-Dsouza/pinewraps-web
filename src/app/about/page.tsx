@@ -11,7 +11,7 @@ export default function AboutPage() {
         ]} 
       />
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-3xl mx-auto">
           <div className="prose prose-lg">
             <h2 className="text-3xl font-bold mb-6">Our Story</h2>

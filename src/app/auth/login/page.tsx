@@ -38,11 +38,16 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       await signInWithGoogle();
+      toast.success('Signed in successfully');
       router.push('/');
     } catch (error: any) {
       console.error('Google sign in error:', error);
-      if (error.message !== 'Sign in cancelled by user') {
-        toast.error('Failed to sign in with Google');
+      if (error.message === 'Sign in cancelled by user') {
+        toast.error('Sign in cancelled');
+      } else if (error.message.includes('unauthorized-domain')) {
+        toast.error('This domain is not authorized for sign-in. Please contact support.');
+      } else {
+        toast.error(error.message || 'Failed to sign in with Google');
       }
     } finally {
       setIsLoading(false);

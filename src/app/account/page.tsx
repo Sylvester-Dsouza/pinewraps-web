@@ -68,16 +68,15 @@ export default function ProfilePage() {
       if (dateOfBirth) {
         const birthDate = new Date(dateOfBirth);
         const today = new Date();
-        const age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
         
-        // If birthday hasn't occurred this year, subtract one year
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-          if (age - 1 < 18) {
-            toast.error('You must be at least 18 years old');
-            return;
-          }
-        } else if (age < 18) {
+        // Calculate age
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+        
+        if (age < 18) {
           toast.error('You must be at least 18 years old');
           return;
         }
@@ -163,14 +162,14 @@ export default function ProfilePage() {
 
         {/* Edit Profile Dialog */}
         <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
-          <DialogContent>
+          <DialogContent className="p-4 sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Edit Profile</DialogTitle>
               <DialogDescription>
-                Update your profile information below.
+                Update your personal information.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
@@ -180,7 +179,7 @@ export default function ProfilePage() {
                     id="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="First Name"
+                    className="mt-1"
                   />
                 </div>
                 <div>
@@ -191,7 +190,7 @@ export default function ProfilePage() {
                     id="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Last Name"
+                    className="mt-1"
                   />
                 </div>
               </div>
@@ -200,7 +199,7 @@ export default function ProfilePage() {
                 <label htmlFor="phone" className="text-sm font-medium text-gray-700">
                   Phone Number
                 </label>
-                <div className="relative flex items-center">
+                <div className="relative flex items-center mt-1">
                   <div className="absolute left-3 text-gray-500">+971</div>
                   <Input
                     id="phone"
@@ -226,10 +225,13 @@ export default function ProfilePage() {
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
+                  className="mt-1"
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                 />
+                <p className="mt-1 text-sm text-gray-500">You must be at least 18 years old</p>
               </div>
             </div>
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-4 pt-4 border-t">
               <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
                 Cancel
               </Button>

@@ -56,7 +56,7 @@ export default async function Home() {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
               Pinewraps for Special Moments
@@ -65,9 +65,11 @@ export default async function Home() {
               Discover our exquisite collection of handcrafted cakes, fresh flowers, and perfect combinations for your celebrations.
             </p>
             <div className="mt-8 flex justify-center gap-4">
-              <Button className="bg-transparent border-2 border-white text-white hover:bg-white/10 min-w-[120px]">
-                View Collections
-              </Button>
+              <Link href="/shop">
+                <Button className="bg-transparent border-2 border-white text-white hover:bg-white/10 min-w-[120px]">
+                  View Collections
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -75,7 +77,7 @@ export default async function Home() {
 
       {/* Categories Section */}
       <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">Our Collections</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Cakes Category */}
@@ -134,33 +136,32 @@ export default async function Home() {
 
       {/* New Arrivals Section */}
       <section className="py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">New Arrivals</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
             {newArrivals && newArrivals.length > 0 ? (
-              newArrivals.map((product) => {
-                // Create SEO-friendly URL
-                const slug = `${product.id}-${product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`;
-                
-                return (
-                  <Link key={product.id} href={`/shop/${slug}`} className="group">
-                    <div className="relative aspect-square rounded-lg overflow-hidden mb-4">
-                      <Image
-                        src={product.images?.[0]?.url || '/images/placeholder.jpg'}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                    <h3 className="font-medium text-gray-900 group-hover:text-gray-600 transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="mt-1 text-gray-500">
-                      {product.basePrice} AED
-                    </p>
-                  </Link>
-                );
-              })
+              newArrivals.map((product) => (
+                <Link 
+                  key={product.id} 
+                  href={`/shop/product/${product.slug}`} 
+                  className="group"
+                >
+                  <div className="relative aspect-square rounded-lg overflow-hidden mb-4">
+                    <Image
+                      src={product.images?.[0]?.url || '/images/placeholder.jpg'}
+                      alt={product.name}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <h3 className="font-medium text-gray-900 group-hover:text-gray-600 transition-colors">
+                    {product.name}
+                  </h3>
+                  <p className="mt-1 text-gray-500">
+                    {product.basePrice} AED
+                  </p>
+                </Link>
+              ))
             ) : (
               <p className="col-span-full text-center text-gray-500">No products available</p>
             )}
@@ -170,7 +171,7 @@ export default async function Home() {
 
       {/* Features Section */}
       <section className="py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
               <h3 className="text-lg font-semibold mb-2">Fast Delivery</h3>

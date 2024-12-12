@@ -359,7 +359,7 @@ export default function OrdersPage() {
       setError(null);
 
       const token = await user.getIdToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders?page=1&limit=50`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -370,26 +370,18 @@ export default function OrdersPage() {
       }
 
       const data = await response.json();
-      toast.success('Orders fetched successfully');
-
-      // Ensure we have an array of orders
-      let ordersList: Order[] = [];
-      if (data.success && data.data) {
-        // Handle different response structures
-        if (Array.isArray(data.data)) {
-          ordersList = data.data;
-        } else if (data.data.orders && Array.isArray(data.data.orders)) {
-          ordersList = data.data.orders;
-        } else if (typeof data.data === 'object') {
-          // If it's a paginated response
-          ordersList = data.data.results || [];
-        }
+      
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Failed to fetch orders');
       }
 
+      // Access orders from the correct path in the response
+      const ordersList = data.data.results || [];
       setOrders(ordersList);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      setError('Failed to load orders. Please try again later.');
+      setError(error instanceof Error ? error.message : 'Failed to load orders. Please try again later.');
+      toast.error('Failed to load orders');
     } finally {
       setIsLoading(false);
     }
