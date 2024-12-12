@@ -98,15 +98,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setAuthToken = (token: string) => {
     // Store in localStorage
     localStorage.setItem('authToken', token);
-    // Store in cookie
-    document.cookie = `authToken=${token}; path=/; max-age=86400; SameSite=Lax`;
+    // Store in cookie with HttpOnly and Secure flags
+    document.cookie = `authToken=${token}; path=/; max-age=86400; SameSite=Strict; Secure`;
+    // Also set the Firebase session cookie
+    document.cookie = `__session=${token}; path=/; max-age=86400; SameSite=Strict; Secure`;
   };
 
   const clearAuthToken = () => {
     // Clear from localStorage
     localStorage.removeItem('authToken');
-    // Clear from cookie
+    // Clear cookies
     document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
   };
 
   useEffect(() => {

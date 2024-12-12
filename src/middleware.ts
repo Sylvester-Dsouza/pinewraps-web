@@ -12,7 +12,9 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/account')) {
     // If neither session cookie nor auth token exists, redirect to login
     if (!firebaseSession && !authToken) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
+      const url = new URL('/auth/login', request.url)
+      url.searchParams.set('from', request.nextUrl.pathname)
+      return NextResponse.redirect(url)
     }
     
     // Clone the headers to modify them
