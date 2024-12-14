@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL(`/checkout/error?message=Payment was cancelled&ref=${ref}&status=CANCELLED`, url.origin));
     }
 
-    // Forward the callback to the API server
+    // Forward the callback to the API server and wait for response
     const response = await fetch(`${API_URL}/api/payments/callback?ref=${ref}`, {
       method: 'GET',
       headers: {
@@ -30,7 +30,16 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL(`/checkout/error?message=${error.message || 'Payment processing failed'}&ref=${ref}`, url.origin));
     }
 
-    // Get payment status from backend
+    // Parse the callback response
+    const callbackData = await response.json();
+    console.log('Callback response:', callbackData);
+
+    // Check if the callback response indicates success
+    if (callbackData.status === 'CAPTURED' && callbackData.orderId) {
+      return NextResponse.redirect(new URL(`/checkout/success?orderId=${callbackData.orderId}&ref=${ref}`, url.origin));
+    }
+
+    // If no success data in callback, get payment status as backup
     const statusResponse = await fetch(`${API_URL}/api/payments/status/${ref}`, {
       method: 'GET',
       headers: {
@@ -44,7 +53,7 @@ export async function GET(request: Request) {
     if (paymentStatus.status === 'CAPTURED') {
       return NextResponse.redirect(new URL(`/checkout/success?orderId=${paymentStatus.orderId}&ref=${ref}`, url.origin));
     } else {
-      return NextResponse.redirect(new URL(`/checkout/error?message=${paymentStatus.errorMessage || 'Payment was not successful'}&ref=${ref}&status=${paymentStatus.status || 'FAILED'}`, url.origin));
+      return NextResponse.redirect(new URL(`/checkout/error?message=${paymentStatus.errorMessage || 'Payment verification failed'}&ref=${ref}&status=${paymentStatus.status || 'FAILED'}`, url.origin));
     }
 
   } catch (error) {
