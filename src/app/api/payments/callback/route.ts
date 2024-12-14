@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL(`/checkout/error?message=Payment was cancelled&ref=${ref}&status=CANCELLED`, url.origin));
     }
 
-    // Forward the callback to the API server and wait for response
+    // Forward the callback to the API server
     const response = await fetch(`${API_URL}/api/payments/callback?ref=${ref}`, {
       method: 'GET',
       headers: {
@@ -30,31 +30,19 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL(`/checkout/error?message=${error.message || 'Payment processing failed'}&ref=${ref}`, url.origin));
     }
 
-    // Parse the callback response
-    const callbackData = await response.json();
-    console.log('Callback response:', callbackData);
+    const data = await response.json();
+    console.log('Payment callback response:', data);
 
-    // Check if the callback response indicates success
-    if (callbackData.status === 'CAPTURED' && callbackData.orderId) {
-      return NextResponse.redirect(new URL(`/checkout/success?orderId=${callbackData.orderId}&ref=${ref}`, url.origin));
+    if (data.status === 'CAPTURED' && data.order) {
+      const successUrl = new URL('/checkout/success', url.origin);
+      successUrl.searchParams.set('orderId', data.order.id);
+      successUrl.searchParams.set('orderNumber', data.order.orderNumber);
+      successUrl.searchParams.set('ref', ref);
+      return NextResponse.redirect(successUrl);
     }
 
-    // If no success data in callback, get payment status as backup
-    const statusResponse = await fetch(`${API_URL}/api/payments/status/${ref}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const paymentStatus = await statusResponse.json();
-    console.log('Payment status:', paymentStatus);
-
-    if (paymentStatus.status === 'CAPTURED') {
-      return NextResponse.redirect(new URL(`/checkout/success?orderId=${paymentStatus.orderId}&ref=${ref}`, url.origin));
-    } else {
-      return NextResponse.redirect(new URL(`/checkout/error?message=${paymentStatus.errorMessage || 'Payment verification failed'}&ref=${ref}&status=${paymentStatus.status || 'FAILED'}`, url.origin));
-    }
+    // If payment is not captured, redirect to error page
+    return NextResponse.redirect(new URL(`/checkout/error?message=${data.errorMessage || 'Payment verification failed'}&ref=${ref}&status=${data.status || 'FAILED'}`, url.origin));
 
   } catch (error) {
     console.error('Error processing payment callback:', error);
