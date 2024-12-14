@@ -33,7 +33,8 @@ export async function GET(request: Request) {
     const data = await response.json();
     console.log('Payment callback response:', data);
 
-    if (data.status === 'CAPTURED' && data.order) {
+    // Check if payment is successful - CAPTURED, PURCHASED, AUTHORISED are all success states
+    if (data.status === 'CAPTURED' || data.status === 'PURCHASED' || data.status === 'AUTHORISED' || data.status === 'AUTHORIZED') {
       const successUrl = new URL('/checkout/success', url.origin);
       successUrl.searchParams.set('orderId', data.order.id);
       successUrl.searchParams.set('orderNumber', data.order.orderNumber);
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
       return Response.redirect(successUrl.toString(), 303);
     }
 
-    // If payment is not captured, redirect to error page
+    // If payment is not successful, redirect to error page
     return Response.redirect(new URL(`/checkout/error?message=${data.errorMessage || 'Payment verification failed'}&ref=${ref}&status=${data.status || 'FAILED'}`, url.origin), 303);
 
   } catch (error) {
