@@ -35,7 +35,7 @@ export default function CheckoutPage() {
     maxDiscount?: number;
   } | null>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
-  const [userRewards, setUserRewards] = useState<{
+  const [customerRewards, setCustomerRewards] = useState<{
     tier: string;
     points: number;
     totalPoints: number;
@@ -88,7 +88,7 @@ export default function CheckoutPage() {
         });
         const data = await response.json();
         if (data.success) {
-          setUserRewards({
+          setCustomerRewards({
             tier: data.data.tier,
             points: data.data.points,
             totalPoints: data.data.totalPoints,
@@ -114,7 +114,7 @@ export default function CheckoutPage() {
     ? selectedEmirate?.toUpperCase() === 'DUBAI' ? 30 : 40
     : 0;
 
-  const maxRedeemablePoints = userRewards?.points || 0;
+  const maxRedeemablePoints = customerRewards?.points || 0;
   const rewardsDiscount = useRewardPoints ? Math.min((maxRedeemablePoints * 0.25), subtotal * 0.25) : 0;
   const discount = appliedCoupon?.discount || 0;
 
@@ -124,16 +124,16 @@ export default function CheckoutPage() {
 
   // Calculate points to be earned based on tier
   const pointsToEarn = useMemo(() => {
-    if (!userRewards) return 0;
+    if (!customerRewards) return 0;
     const tierMultipliers = {
       'BRONZE': 0.07,
       'SILVER': 0.12,
       'GOLD': 0.15,
       'PLATINUM': 0.20
     };
-    const multiplier = tierMultipliers[userRewards.tier as keyof typeof tierMultipliers] || 0.07;
+    const multiplier = tierMultipliers[customerRewards.tier as keyof typeof tierMultipliers] || 0.07;
     return Math.floor(total * multiplier);
-  }, [total, userRewards]);
+  }, [total, customerRewards]);
 
   const handleDeliveryMethodChange = (method: 'pickup' | 'delivery', emirate: string) => {
     setDeliveryMethod(method);
@@ -200,7 +200,7 @@ export default function CheckoutPage() {
         giftMessage: shippingDetails.giftMessage,
         
         // Points & Discounts
-        pointsRedeemed: useRewardPoints ? (userRewards?.points || 0) : 0,
+        pointsRedeemed: useRewardPoints ? (customerRewards?.points || 0) : 0,
         discount: discount || 0,
         rewardsDiscount: rewardsDiscount || 0,
         couponCode: appliedCoupon?.code
@@ -226,19 +226,23 @@ export default function CheckoutPage() {
       // Get order ID from response
       const { data } = await response.json();
 
-      // Clear the cart
-      clearCart();
-      
       if (shippingDetails.paymentMethod === 'CASH') {
         // For cash on delivery, redirect to thank you page
+        clearCart();
         router.push(`/thank-you?orderId=${data.id}`);
       } else {
         try {
+          // Show loading state immediately
+          setIsSubmitting(true);
+          
           // For card payments, initialize N-Genius payment
           const paymentUrl = await PaymentService.createPayment(data.id);
           if (!paymentUrl) {
             throw new Error('No payment URL received');
           }
+          
+          // Clear cart only after successful payment initialization
+          clearCart();
           
           // Redirect to N-Genius payment page
           window.location.href = paymentUrl;
@@ -324,15 +328,15 @@ export default function CheckoutPage() {
   };
 
   const renderRewardsSection = () => {
-    if (!userRewards || userRewards.points === 0) return null;
+    if (!customerRewards || customerRewards.points === 0) return null;
 
-    const maxDiscount = (userRewards.points * 0.25).toFixed(2);
+    const maxDiscount = (customerRewards.points * 0.25).toFixed(2);
     return (
       <div className="mt-4 p-4 bg-gray-50 rounded-lg">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-medium text-gray-900">Your Reward Points</h3>
-            <p className="text-sm text-gray-500">You have {userRewards.points} points (Worth AED {maxDiscount})</p>
+            <p className="text-sm text-gray-500">You have {customerRewards.points} points (Worth AED {maxDiscount})</p>
           </div>
           <div className="flex items-center">
             <input
@@ -341,7 +345,7 @@ export default function CheckoutPage() {
               checked={useRewardPoints}
               onChange={(e) => setUseRewardPoints(e.target.checked)}
               className="h-4 w-4 text-black border-gray-300 rounded"
-              disabled={userRewards.points === 0}
+              disabled={customerRewards.points === 0}
             />
             <label htmlFor="useRewardPoints" className="ml-2 text-sm text-gray-900">
               Use Points

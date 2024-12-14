@@ -4,12 +4,15 @@ import Link from 'next/link';
 import { XCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/cart-context';
 
 function CheckoutErrorContent() {
   const searchParams = useSearchParams();
   const { clearCart } = useCart();
   const message = searchParams.get('message') || 'An error occurred during checkout';
+  const orderId = searchParams.get('orderId');
+  const status = searchParams.get('status');
+  const ref = searchParams.get('ref');
 
   useEffect(() => {
     // Clear cart on error
@@ -21,11 +24,16 @@ function CheckoutErrorContent() {
       <div className="text-center">
         <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Payment Failed
+          {status === 'CANCELLED' ? 'Payment Cancelled' : 'Payment Failed'}
         </h1>
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-lg text-gray-600 mb-4">
           {message}
         </p>
+        {orderId && (
+          <p className="text-sm text-gray-500 mb-8">
+            Order Reference: #{orderId}
+          </p>
+        )}
 
         <div className="space-y-4">
           <Link
@@ -35,12 +43,18 @@ function CheckoutErrorContent() {
             Try Again
           </Link>
           
-          <div>
+          <div className="flex flex-col space-y-2">
             <Link
               href="/contact"
-              className="inline-block text-gray-600 hover:text-gray-900 mt-4"
+              className="inline-block text-gray-600 hover:text-gray-900"
             >
               Need help? Contact support
+            </Link>
+            <Link
+              href="/cart"
+              className="inline-block text-gray-600 hover:text-gray-900"
+            >
+              Return to Cart
             </Link>
           </div>
         </div>

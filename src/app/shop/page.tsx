@@ -131,14 +131,9 @@ export default function ShopPage() {
                 const imageUrl = product.images?.[0]?.url || product.images?.[0]?.downloadURL || '/placeholder.jpg';
                 const imageAlt = product.images?.[0]?.alt || product.name || 'Product image';
                 
-                // Create SEO-friendly URL from product name
-                const slug = product.name.toLowerCase()
-                  .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric chars with hyphens
-                  .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-
                 return (
                   <div key={product.id} className="group">
-                    <Link href={`/shop/${slug}`} className="block">
+                    <Link href={`/shop/${product.slug}`} className="block">
                       <div className="relative aspect-square overflow-hidden bg-gray-100 mb-4 rounded-lg">
                         <ProductGridImage
                           src={imageUrl}

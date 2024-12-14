@@ -68,8 +68,15 @@ export function generateSlug(name: string): string {
 // Helper function to find product by slug
 export async function getProductBySlug(slug: string) {
   try {
-    const products = await getProducts();
-    return products.find(product => generateSlug(product.name) === slug);
+    const response = await fetch(`${API_URL}/api/products/public/${slug}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch product');
+    }
+    const result: ApiResponse<Product> = await response.json();
+    if (!result.success) {
+      throw new Error('Failed to fetch product');
+    }
+    return result.data;
   } catch (error) {
     console.error('Error finding product by slug:', error);
     throw error;

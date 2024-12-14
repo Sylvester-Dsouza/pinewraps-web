@@ -18,7 +18,7 @@ interface RewardHistory {
   createdAt: string;
 }
 
-interface UserReward {
+interface CustomerReward {
   id: string;
   points: number;
   totalPoints: number;
@@ -28,7 +28,7 @@ interface UserReward {
 
 export default function RewardsPage() {
   const { user, loading: authLoading } = useAuth();
-  const [rewards, setRewards] = useState<UserReward | null>(null);
+  const [rewards, setRewards] = useState<CustomerReward | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 

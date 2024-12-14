@@ -114,18 +114,18 @@ export default async function Home() {
               </div>
             </Link>
 
-            {/* Combos Category */}
-            <Link href="/combos" className="group">
+            {/* Sets Category */}
+            <Link href="/sets" className="group">
               <div className="relative aspect-square rounded-lg overflow-hidden">
                 <Image
-                  src="/images/category-combos.jpg"
+                  src="/images/category-sets.jpg"
                   alt="Perfect Combinations"
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-6 left-6">
-                  <h3 className="text-2xl font-bold text-white">Combos</h3>
+                  <h3 className="text-2xl font-bold text-white">Sets</h3>
                   <p className="text-white/90 mt-2">Perfect combinations</p>
                 </div>
               </div>
@@ -143,7 +143,7 @@ export default async function Home() {
               newArrivals.map((product) => (
                 <Link 
                   key={product.id} 
-                  href={`/shop/product/${product.slug}`} 
+                  href={`/shop/${product.slug}`} 
                   className="group"
                 >
                   <div className="relative aspect-square rounded-lg overflow-hidden mb-4">

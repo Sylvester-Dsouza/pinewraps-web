@@ -106,16 +106,38 @@ export default function DynamicPrice({
       selectedVariations[flavourVariation?.id || '']
     );
 
-    // Find matching combination
+    // First check if there's a combination price (for multiple variations)
     const combination = combinations.find(
       c => c.size === selectedSize && c.flavour === selectedFlavour
     );
 
-    // Use combination price if found, otherwise fallback to base price
-    const newPrice = combination ? combination.price : basePrice;
-    
-    setCurrentPrice(newPrice);
-    onPriceChange(newPrice);
+    if (combination) {
+      // Use combination price if found
+      setCurrentPrice(combination.price);
+      onPriceChange(combination.price);
+    } else {
+      // If no combination price, check for individual variation prices
+      let finalPrice = basePrice;
+      let useBasePrice = true;
+
+      // Check if we have any variations with price adjustments
+      for (const variation of variations) {
+        const selectedOptionId = selectedVariations[variation.id];
+        const selectedOption = variation.options.find(opt => opt.id === selectedOptionId);
+        
+        if (selectedOption && selectedOption.priceAdjustment !== 0) {
+          // If any variation has a price adjustment, we'll use that instead of base price
+          useBasePrice = false;
+          finalPrice = selectedOption.priceAdjustment;
+          break;
+        }
+      }
+
+      // Set the final price
+      setCurrentPrice(finalPrice);
+      onPriceChange(finalPrice);
+    }
+
     updateSelectedVariationsArray();
   }, [selectedVariations, variations, combinations, basePrice, onPriceChange]);
 

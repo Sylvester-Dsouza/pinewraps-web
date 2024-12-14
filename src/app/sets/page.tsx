@@ -6,14 +6,14 @@ import Link from 'next/link';
 import PageTitle from '@/components/ui/page-title';
 import { Product } from '@/types/product';
 
-export default function CombosPage() {
+export default function SetsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // First, get the category ID for Combos
+        // First, get the category ID for Sets
         const categoryRes = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/categories/public`,
           { cache: 'no-store' }
@@ -24,15 +24,15 @@ export default function CombosPage() {
         }
 
         const categoryData = await categoryRes.json();
-        const combosCategory = categoryData.data.find((cat: any) => cat.name === 'Combos');
+        const setsCategory = categoryData.data.find((cat: any) => cat.name === 'Sets');
 
-        if (!combosCategory) {
-          throw new Error('Combos category not found');
+        if (!setsCategory) {
+          throw new Error('Sets category not found');
         }
 
         // Then fetch products for this category
         const productsRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/products/public?categoryId=${combosCategory.id}&status=ACTIVE`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/products/public?categoryId=${setsCategory.id}&status=ACTIVE`,
           { cache: 'no-store' }
         );
         
@@ -41,11 +41,11 @@ export default function CombosPage() {
         }
 
         const productsData = await productsRes.json();
-        // Filter products to only show those in the Combos category
-        const comboProducts = productsData.data.filter((product: any) => 
-          product.category?.id === combosCategory.id
+        // Filter products to only show those in the Sets category
+        const setProducts = productsData.data.filter((product: any) => 
+          product.category?.id === setsCategory.id
         );
-        setProducts(comboProducts);
+        setProducts(setProducts);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -67,10 +67,10 @@ export default function CombosPage() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="prose max-w-none">
           <p className="text-gray-600 text-lg leading-relaxed">
-            Experience the magic of perfect pairings with Pinewraps&apos; combo collection. We&apos;ve thoughtfully 
+            Experience the magic of perfect pairings with Pinewraps&apos; sets collection. We&apos;ve thoughtfully 
             combined our handcrafted cakes with stunning flower arrangements to create unforgettable gift packages. 
-            Each combo is designed to make your celebrations more special, offering a harmonious blend of flavors 
-            and visual beauty. Whether it&apos;s a birthday, anniversary, or any special occasion, our combos provide 
+            Each set is designed to make your celebrations more special, offering a harmonious blend of flavors 
+            and visual beauty. Whether it&apos;s a birthday, anniversary, or any special occasion, our sets provide 
             a complete celebration solution that will leave a lasting impression.
           </p>
         </div>
@@ -111,7 +111,7 @@ export default function CombosPage() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500">No combos available at the moment.</p>
+            <p className="text-gray-500">No sets available at the moment.</p>
           </div>
         )}
       </div>

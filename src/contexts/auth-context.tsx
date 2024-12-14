@@ -6,6 +6,8 @@ import {
   getAuth, 
   signInWithPopup, 
   GoogleAuthProvider, 
+  FacebookAuthProvider,
+  OAuthProvider,
   onAuthStateChanged,
   signOut as firebaseSignOut,
   User,
@@ -34,6 +36,8 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
 
 interface AuthContextType {
   user: User | null;
@@ -45,6 +49,8 @@ interface AuthContextType {
   } | null;
   loading: boolean;
   signInWithGoogle: () => Promise<User>;
+  signInWithFacebook: () => Promise<User>;
+  signInWithApple: () => Promise<User>;
   signInWithEmail: (email: string, password: string) => Promise<User>;
   signUpWithEmail: (email: string, password: string, userData: { firstName: string; lastName: string; phone: string }) => Promise<User>;
   signOut: () => Promise<void>;
@@ -198,6 +204,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthToken(token);
       
       console.log('Calling backend social auth...');
+      try {
+        // Call the backend social auth endpoint
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/auth/social`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            token,
+            provider: 'GOOGLE',
+            email: result.user.email,
+            firstName: result.user.displayName?.split(' ')[0] || '',
+            lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+            imageUrl: result.user.photoURL || ''
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          console.error('Backend auth error:', { status: response.status, data: errorData });
+          throw new Error('Failed to authenticate with backend');
+        }
+
+        const data = await response.json();
+        console.log('Backend auth success:', data);
+
+        // Set customer data
+        if (data.success && data.data?.customer) {
+          setCustomerData({
+            firstName: data.data.customer.firstName,
+            lastName: data.data.customer.lastName,
+            phone: data.data.customer.phone || '',
+            dateOfBirth: data.data.customer.dateOfBirth || ''
+          });
+        }
+
+        // Set user and session cookie
+        setUser(result.user);
+        await setSessionCookie(result.user);
+      } catch (error) {
+        console.error('Backend auth error:', error);
+        // Still set the user even if backend fails
+        setUser(result.user);
+        throw error;
+      }
+
+      return result.user;
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      clearAuthToken();
+      throw error;
+    }
+  };
+
+  const signInWithFacebook = async () => {
+    try {
+      console.log('Starting Facebook sign in...');
+      
+      const result = await signInWithPopup(auth, facebookProvider).catch((error) => {
+        console.error('Facebook popup error:', error);
+        if (error.code === 'auth/popup-closed-by-user') {
+          throw new Error('Sign in cancelled by user');
+        }
+        if (error.code === 'auth/unauthorized-domain') {
+          throw new Error('This domain is not authorized for sign-in. Please contact support.');
+        }
+        throw error;
+      });
+      
+      const token = await result.user.getIdToken();
+      setAuthToken(token);
+      
       // Call the backend social auth endpoint
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/auth/social`, {
         method: 'POST',
@@ -207,7 +286,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         body: JSON.stringify({
           token,
-          provider: 'GOOGLE',
+          provider: 'FACEBOOK',
           email: result.user.email,
           firstName: result.user.displayName?.split(' ')[0] || '',
           lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
@@ -218,13 +297,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         console.error('Backend auth error:', { status: response.status, data: errorData });
-        throw new Error(errorData?.error?.message || 'Failed to authenticate with backend');
+        throw new Error('Failed to authenticate with backend');
       }
 
       const data = await response.json();
       console.log('Backend auth success:', data);
 
-      // Set customer data
       if (data.success && data.data?.customer) {
         setCustomerData({
           firstName: data.data.customer.firstName,
@@ -234,9 +312,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
-      // Set session cookie
       await setSessionCookie(result.user);
+      return result.user;
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      clearAuthToken();
+      throw error;
+    }
+  };
 
+  const signInWithApple = async () => {
+    try {
+      console.log('Starting Apple sign in...');
+      
+      // Configure Apple provider
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+      
+      const result = await signInWithPopup(auth, appleProvider).catch((error) => {
+        console.error('Apple popup error:', error);
+        if (error.code === 'auth/popup-closed-by-user') {
+          throw new Error('Sign in cancelled by user');
+        }
+        if (error.code === 'auth/unauthorized-domain') {
+          throw new Error('This domain is not authorized for sign-in. Please contact support.');
+        }
+        throw error;
+      });
+      
+      const token = await result.user.getIdToken();
+      setAuthToken(token);
+      
+      // Call the backend social auth endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/auth/social`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          token,
+          provider: 'APPLE',
+          email: result.user.email,
+          firstName: result.user.displayName?.split(' ')[0] || '',
+          lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+          imageUrl: result.user.photoURL || ''
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('Backend auth error:', { status: response.status, data: errorData });
+        throw new Error('Failed to authenticate with backend');
+      }
+
+      const data = await response.json();
+      console.log('Backend auth success:', data);
+
+      if (data.success && data.data?.customer) {
+        setCustomerData({
+          firstName: data.data.customer.firstName,
+          lastName: data.data.customer.lastName,
+          phone: data.data.customer.phone || '',
+          dateOfBirth: data.data.customer.dateOfBirth || ''
+        });
+      }
+
+      await setSessionCookie(result.user);
       return result.user;
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -431,6 +573,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       customerData,
       loading,
       signInWithGoogle,
+      signInWithFacebook,
+      signInWithApple,
       signInWithEmail,
       signUpWithEmail,
       signOut,

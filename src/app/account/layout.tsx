@@ -67,8 +67,8 @@ export default function AccountLayout({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         
         {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+        <div className="border-b border-gray-200 overflow-x-auto scrollbar-hide">
+          <nav className="-mb-px flex space-x-8 min-w-max px-1">
             {accountTabs.map((tab) => {
               const isActive = pathname === tab.href
               const Icon = tab.icon
@@ -91,11 +91,17 @@ export default function AccountLayout({
                       : 'text-gray-400 group-hover:text-gray-500'
                     }
                   `} />
-                  {tab.name}
+                  <span className="whitespace-nowrap">{tab.name}</span>
                 </Link>
               )
             })}
           </nav>
+        </div>
+
+        {/* Add gradient indicators for scroll */}
+        <div className="relative md:hidden">
+          <div className="absolute left-0 top-[-48px] h-12 w-8 bg-gradient-to-r from-gray-50 to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-[-48px] h-12 w-8 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none" />
         </div>
 
         {/* Content */}

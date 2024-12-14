@@ -17,17 +17,39 @@ function CheckoutSuccessContent() {
   const { user } = useAuth();
   const { clearCart } = useCart();
   const [rewardUpdate, setRewardUpdate] = useState<RewardUpdate | null>(null);
+  const [isVerifying, setIsVerifying] = useState(true);
   const orderId = searchParams.get('orderId');
   const ref = searchParams.get('ref');
 
   useEffect(() => {
-    // Clear cart on successful payment
-    clearCart();
-  }, [clearCart]);
+    // Verify payment status
+    const verifyPayment = async () => {
+      if (!ref) return;
+      
+      try {
+        const response = await fetch(`/api/payments/${ref}/status`);
+        const data = await response.json();
+        
+        if (!response.ok || data.status !== 'CAPTURED') {
+          window.location.href = `/checkout/error?message=${encodeURIComponent('Payment verification failed')}&orderId=${orderId}&ref=${ref}`;
+          return;
+        }
+        
+        // Clear cart only after payment verification
+        clearCart();
+        setIsVerifying(false);
+      } catch (error) {
+        console.error('Payment verification error:', error);
+        window.location.href = `/checkout/error?message=${encodeURIComponent('Payment verification failed')}&orderId=${orderId}&ref=${ref}`;
+      }
+    };
+
+    verifyPayment();
+  }, [ref, orderId, clearCart]);
 
   useEffect(() => {
     const fetchRewardUpdate = async () => {
-      if (!orderId || !user?.customerId) return;
+      if (!orderId || !user?.customerId || isVerifying) return;
 
       try {
         const response = await fetch(`/api/rewards/${user.customerId}`);
@@ -41,7 +63,18 @@ function CheckoutSuccessContent() {
     };
 
     fetchRewardUpdate();
-  }, [orderId, user?.customerId]);
+  }, [orderId, user?.customerId, isVerifying]);
+
+  if (isVerifying) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black mb-4"></div>
+          <p className="text-gray-600">Verifying your payment...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">

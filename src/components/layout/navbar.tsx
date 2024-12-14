@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/contexts/cart-context';
 import { useAuth } from '@/contexts/auth-context';
 import { ShoppingBag, User, Menu, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,18 +16,39 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close profile menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.profile-menu')) {
+      
+      // Close profile menu if clicking outside
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
         setIsMenuOpen(false);
+      }
+      
+      // Close mobile menu if clicking outside
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    // Close menus when pressing escape
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
 
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -54,9 +76,19 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
-              <span className="text-2xl font-bold text-black">
-                Pinewraps
-              </span>
+              <Image 
+                src="/images/logo.png" 
+                alt="Pinewraps Logo" 
+                width={120}  
+                height={60}  
+                className="h-12 w-auto object-contain" 
+                priority
+                quality={100} 
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto'
+                }}
+              />
             </Link>
           </div>
 
@@ -75,23 +107,9 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2"
-            >
-              {isMobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
-          </div>
-
           {/* Right side icons */}
           <div className="flex items-center space-x-4">
-            <Link href="/cart" className="relative p-2">
+            <Link href="/cart" className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
               <ShoppingBag className="h-6 w-6" />
               {state.items.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-black text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
@@ -100,45 +118,54 @@ export default function Navbar() {
               )}
             </Link>
             {user ? (
-              <div className="relative profile-menu">
+              <div className="relative profile-menu" ref={profileMenuRef}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsMenuOpen(!isMenuOpen);
+                    // Close mobile menu if open
+                    setIsMobileMenuOpen(false);
                   }}
-                  className="p-2"
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <User className="h-6 w-6" />
                 </button>
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-5">
                     <Link
                       href="/account"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       My Profile
                     </Link>
                     <Link
                       href="/account/orders"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       My Orders
                     </Link>
                     <Link
                       href="/account/addresses"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       My Addresses
                     </Link>
                     <Link
                       href="/account/support"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       Support
                     </Link>
                     <button
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                     >
                       Sign Out
                     </button>
@@ -148,23 +175,42 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="text-gray-700 hover:text-black"
+                className="text-gray-700 hover:text-black transition-colors"
               >
                 Login
               </Link>
             )}
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMobileMenuOpen(!isMobileMenuOpen);
+                  // Close profile menu if open
+                  setIsMenuOpen(false);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
+          <div className="md:hidden" ref={mobileMenuRef}>
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t animate-in slide-in-from-top">
               {menuItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-black hover:bg-gray-50"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-black hover:bg-gray-50 transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.label}
