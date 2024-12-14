@@ -10,11 +10,11 @@ export async function GET(request: Request) {
     const cancelled = url.searchParams.get('cancelled');
 
     if (!ref) {
-      return NextResponse.redirect(new URL('/checkout/error?message=Payment reference missing', url.origin));
+      return Response.redirect(new URL('/checkout/error?message=Payment reference missing', url.origin), 303);
     }
 
     if (cancelled === 'true') {
-      return NextResponse.redirect(new URL(`/checkout/error?message=Payment was cancelled&ref=${ref}&status=CANCELLED`, url.origin));
+      return Response.redirect(new URL(`/checkout/error?message=Payment was cancelled&ref=${ref}&status=CANCELLED`, url.origin), 303);
     }
 
     // Forward the callback to the API server
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
     if (!response.ok) {
       const error = await response.json();
-      return NextResponse.redirect(new URL(`/checkout/error?message=${error.message || 'Payment processing failed'}&ref=${ref}`, url.origin));
+      return Response.redirect(new URL(`/checkout/error?message=${error.message || 'Payment processing failed'}&ref=${ref}`, url.origin), 303);
     }
 
     const data = await response.json();
@@ -38,15 +38,15 @@ export async function GET(request: Request) {
       successUrl.searchParams.set('orderId', data.order.id);
       successUrl.searchParams.set('orderNumber', data.order.orderNumber);
       successUrl.searchParams.set('ref', ref);
-      return NextResponse.redirect(successUrl);
+      return Response.redirect(successUrl.toString(), 303);
     }
 
     // If payment is not captured, redirect to error page
-    return NextResponse.redirect(new URL(`/checkout/error?message=${data.errorMessage || 'Payment verification failed'}&ref=${ref}&status=${data.status || 'FAILED'}`, url.origin));
+    return Response.redirect(new URL(`/checkout/error?message=${data.errorMessage || 'Payment verification failed'}&ref=${ref}&status=${data.status || 'FAILED'}`, url.origin), 303);
 
   } catch (error) {
     console.error('Error processing payment callback:', error);
-    return NextResponse.redirect(new URL('/checkout/error?message=Payment processing failed', url.origin));
+    return Response.redirect(new URL('/checkout/error?message=Payment processing failed', url.origin), 303);
   }
 }
 
