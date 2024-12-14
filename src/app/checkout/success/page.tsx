@@ -1,13 +1,18 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, ArrowRight, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const SuccessPage = () => {
-  const router = useRouter();
-  const { ref, orderId, orderNumber } = router.query;
+export default function SuccessPage() {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
+
+  const ref = searchParams.get('ref');
+  const orderId = searchParams.get('orderId');
+  const orderNumber = searchParams.get('orderNumber');
 
   useEffect(() => {
     if (ref && orderId) {
@@ -77,6 +82,4 @@ const SuccessPage = () => {
       </div>
     </div>
   );
-};
-
-export default SuccessPage;
+}

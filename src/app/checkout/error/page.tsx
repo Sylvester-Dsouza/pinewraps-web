@@ -1,12 +1,16 @@
+'use client';
+
 import React from 'react';
-import { useRouter } from 'next/router';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, RefreshCcw, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const ErrorPage = () => {
-  const router = useRouter();
-  const { message, ref, status } = router.query;
+export default function ErrorPage() {
+  const searchParams = useSearchParams();
+  const message = searchParams.get('message');
+  const ref = searchParams.get('ref');
+  const status = searchParams.get('status');
 
   const getErrorMessage = () => {
     if (status === 'CANCELLED') {
@@ -70,6 +74,4 @@ const ErrorPage = () => {
       </div>
     </div>
   );
-};
-
-export default ErrorPage;
+}
