@@ -30,18 +30,26 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL(`/checkout/error?message=${error.message || 'Payment processing failed'}&ref=${ref}`, url.origin));
     }
 
-    const data = await response.json();
-    
-    // Check payment status
-    if (data.payment?.status === 'CAPTURED') {
-      return NextResponse.redirect(new URL(`/checkout/success?orderId=${data.payment.orderId}&ref=${ref}`, url.origin));
+    // Get payment status from backend
+    const statusResponse = await fetch(`${API_URL}/api/payments/status/${ref}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const paymentStatus = await statusResponse.json();
+    console.log('Payment status:', paymentStatus);
+
+    if (paymentStatus.status === 'CAPTURED') {
+      return NextResponse.redirect(new URL(`/checkout/success?orderId=${paymentStatus.orderId}&ref=${ref}`, url.origin));
     } else {
-      return NextResponse.redirect(new URL(`/checkout/error?message=Payment was not successful&ref=${ref}&status=${data.payment?.status || 'FAILED'}`, url.origin));
+      return NextResponse.redirect(new URL(`/checkout/error?message=${paymentStatus.errorMessage || 'Payment was not successful'}&ref=${ref}&status=${paymentStatus.status || 'FAILED'}`, url.origin));
     }
 
   } catch (error) {
     console.error('Error processing payment callback:', error);
-    return NextResponse.redirect(new URL('/checkout/error?message=Payment processing failed', request.url));
+    return NextResponse.redirect(new URL('/checkout/error?message=Payment processing failed', url.origin));
   }
 }
 
