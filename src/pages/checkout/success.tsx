@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Box, Container, Typography, Button, CircularProgress } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useTheme } from '@mui/material/styles';
 import Link from 'next/link';
+import { CheckCircle, ArrowRight, Home } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const SuccessPage = () => {
   const router = useRouter();
-  const theme = useTheme();
   const { ref, orderId, orderNumber } = router.query;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Wait for query params to be available
     if (ref && orderId) {
       setLoading(false);
     }
@@ -20,68 +17,65 @@ const SuccessPage = () => {
 
   if (loading) {
     return (
-      <Box 
-        display="flex" 
-        justifyContent="center" 
-        alignItems="center" 
-        minHeight="80vh"
-      >
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[80vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="sm">
-      <Box 
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '80vh',
-          textAlign: 'center',
-          gap: 3
-        }}
-      >
-        <CheckCircleIcon 
-          sx={{ 
-            fontSize: 80, 
-            color: theme.palette.success.main 
-          }} 
-        />
+    <div className="container max-w-lg mx-auto px-4">
+      <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-6">
+        <div className="rounded-full bg-green-100 p-3">
+          <CheckCircle className="w-16 h-16 text-green-600" />
+        </div>
         
-        <Typography variant="h4" component="h1" gutterBottom>
-          Payment Successful!
-        </Typography>
+        <h1 className="text-3xl font-bold">Payment Successful!</h1>
 
-        <Typography variant="body1" color="text.secondary" paragraph>
+        <p className="text-muted-foreground">
           Thank you for your order. Your payment has been processed successfully.
-        </Typography>
+        </p>
 
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="body1" gutterBottom>
-            Order Number: <strong>{orderNumber}</strong>
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
+        <div className="mt-4">
+          <p className="text-lg">
+            Order Number: <span className="font-semibold">{orderNumber}</span>
+          </p>
+          <p className="text-sm text-muted-foreground">
             Reference: {ref}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
-          <Link href={`/orders/${orderId}`} passHref>
-            <Button variant="contained" color="primary">
-              View Order
-            </Button>
+        <div className="flex flex-col sm:flex-row gap-4 mt-8">
+          <Link 
+            href={`/orders/${orderId}`}
+            className={cn(
+              "inline-flex items-center justify-center",
+              "rounded-md text-sm font-medium",
+              "bg-primary text-primary-foreground",
+              "hover:bg-primary/90",
+              "h-10 px-4 py-2"
+            )}
+          >
+            View Order
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
-          <Link href="/" passHref>
-            <Button variant="outlined">
-              Continue Shopping
-            </Button>
+          
+          <Link 
+            href="/"
+            className={cn(
+              "inline-flex items-center justify-center",
+              "rounded-md text-sm font-medium",
+              "border border-input bg-background",
+              "hover:bg-accent hover:text-accent-foreground",
+              "h-10 px-4 py-2"
+            )}
+          >
+            Continue Shopping
+            <Home className="ml-2 h-4 w-4" />
           </Link>
-        </Box>
-      </Box>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 };
 
