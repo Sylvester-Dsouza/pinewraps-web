@@ -59,7 +59,7 @@ export default async function Home() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
-              Pinewraps for Special Moments
+              Pine Wraps for Special Moments
             </h1>
             <p className="mt-6 text-lg text-white/90 max-w-2xl mx-auto">
               Discover our exquisite collection of handcrafted cakes, fresh flowers, and perfect combinations for your celebrations.
