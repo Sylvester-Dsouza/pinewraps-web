@@ -7,11 +7,14 @@ import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'react-hot-toast';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const { signInWithGoogle, signInWithFacebook, signInWithApple, signInWithEmail } = useAuth();
   const router = useRouter();
 
@@ -135,6 +138,35 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <button
+                type="button"
+                className="text-sm text-blue-600 hover:text-blue-500"
+                onClick={async () => {
+                  if (!email) {
+                    toast.error('Please enter your email address');
+                    return;
+                  }
+                  
+                  setIsResettingPassword(true);
+                  try {
+                    await sendPasswordResetEmail(auth, email);
+                    toast.success('Password reset email sent. Please check your inbox.');
+                  } catch (error: any) {
+                    console.error('Password reset error:', error);
+                    toast.error(error.message || 'Failed to send reset email');
+                  } finally {
+                    setIsResettingPassword(false);
+                  }
+                }}
+                disabled={isResettingPassword}
+              >
+                {isResettingPassword ? 'Sending...' : 'Forgot password?'}
+              </button>
             </div>
           </div>
 

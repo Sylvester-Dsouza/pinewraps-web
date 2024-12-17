@@ -632,7 +632,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                       value={formData.giftMessage}
                       onChange={(e) => setFormData(prev => ({ ...prev, giftMessage: e.target.value }))}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      placeholder="Enter your gift message here..."
+                      placeholder="Enter your gift message here... With Name Phone and Gift Message"
                     />
                   </div>
                 )}

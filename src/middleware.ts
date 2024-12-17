@@ -3,6 +3,12 @@ import type { NextRequest } from 'next/server'
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
+  // Check for x-redirect-location header
+  const redirectUrl = request.headers.get('x-redirect-location');
+  if (redirectUrl) {
+    return NextResponse.redirect(redirectUrl);
+  }
+
   // Get Firebase session cookie and auth token
   const firebaseSession = request.cookies.get('__session')
   const authToken = request.cookies.get('authToken')?.value || request.headers.get('authorization')?.split('Bearer ')[1]
@@ -39,6 +45,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/account/:path*',
-    '/checkout/:path*'
+    '/checkout/:path*',
+    '/shop/:path*'
   ]
 }

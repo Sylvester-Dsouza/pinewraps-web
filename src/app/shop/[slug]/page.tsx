@@ -25,7 +25,9 @@ export async function generateMetadata(
   }
 
   try {
-    const product = await getProductBySlug(slug);
+    const response = await getProductBySlug(slug);
+    const product = response?.data;
+
     if (!product) {
       return { title: 'Product - Pinewraps' };
     }
@@ -58,16 +60,28 @@ export default async function ProductPage({
   }
 
   try {
-    const product = await getProductBySlug(slug);
-    if (!product) {
+    const response = await getProductBySlug(slug);
+    
+    if (!response?.success || !response?.data) {
+      console.error('Product not found:', slug);
       return notFound();
     }
 
-    // Verify the slug matches the current product name
-    // If it doesn't match, redirect to the correct URL for SEO
-    const correctSlug = generateSlug(product.name);
-    if (slug !== correctSlug) {
-      redirect(`/shop/${correctSlug}`);
+    const product = response.data;
+    
+    // Check if product exists and is active
+    if (!product || product.status !== 'ACTIVE') {
+      console.error('Product not active:', slug);
+      return notFound();
+    }
+
+    // If product has a defined slug, use it, otherwise generate from name
+    const correctSlug = product.slug || generateSlug(product.name);
+    
+    // If current slug doesn't match the correct slug and we're not already redirecting
+    if (correctSlug !== slug && !searchParams?.redirect) {
+      const newUrl = `/shop/${correctSlug}?redirect=true`;
+      return Response.redirect(new URL(newUrl, process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'), 307);
     }
 
     const variations = product.variations || [];

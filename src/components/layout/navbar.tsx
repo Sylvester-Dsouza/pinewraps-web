@@ -84,9 +84,8 @@ export default function Navbar() {
                 className="h-10 w-auto object-contain" 
                 priority
                 quality={90}
-                style={{ maxWidth: '60%', height: 'auto' }}
+                style={{ maxWidth: 'min(200px, 50%)', height: 'auto' }}
               />
-              
             </Link>
           </div>
 
@@ -182,13 +181,15 @@ export default function Navbar() {
             {/* Mobile Menu Button */}
             <div className="md:hidden">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
+                type="button"
+                onClick={() => {
                   setIsMobileMenuOpen(!isMobileMenuOpen);
                   // Close profile menu if open
                   setIsMenuOpen(false);
                 }}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-expanded={isMobileMenuOpen}
+                aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -200,27 +201,26 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden" ref={mobileMenuRef}>
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t animate-in slide-in-from-top">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-black hover:bg-gray-50 transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsMobileMenuOpen(false);
-                    router.push(item.href);
-                  }}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
+        {/* Mobile Navigation Menu */}
+        <div 
+          className={cn(
+            "md:hidden absolute top-16 left-0 right-0 bg-white border-t border-gray-100 shadow-lg transition-all duration-200 ease-in-out",
+            isMobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+          )}
+        >
+          <div className="px-4 pt-2 pb-3 space-y-1">
+            {menuItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-black hover:bg-gray-50 rounded-md"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );
