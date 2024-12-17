@@ -79,21 +79,19 @@ export default function Navbar() {
               <Image 
                 src="/images/logo.png" 
                 alt="Pinewraps Logo" 
-                width={120}  
-                height={60}  
-                className="h-12 w-auto object-contain" 
+                width={200}
+                height={100}
+                className="h-10 w-auto object-contain" 
                 priority
-                quality={100} 
-                style={{
-                  maxWidth: '100%',
-                  height: 'auto'
-                }}
+                quality={90}
+                style={{ maxWidth: '60%', height: 'auto' }}
               />
+              
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center justify-center flex-1">
+          <div className="hidden md:flex items-center flex-1">
             <div className="flex space-x-8">
               {menuItems.map((item) => (
                 <Link
@@ -211,7 +209,11 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-black hover:bg-gray-50 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsMobileMenuOpen(false);
+                    router.push(item.href);
+                  }}
                 >
                   {item.label}
                 </Link>
