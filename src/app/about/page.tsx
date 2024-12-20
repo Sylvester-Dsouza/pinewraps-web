@@ -16,7 +16,7 @@ export default function AboutPage() {
           <div className="prose prose-lg">
             <h2 className="text-3xl font-bold mb-6">Our Story</h2>
             <p className="mb-6">
-              Welcome to Pinewraps, where we transform ordinary moments into extraordinary memories. 
+              Welcome to Pine Wraps, where we transform ordinary moments into extraordinary memories. 
               Founded with a passion for creating beautiful experiences, we specialize in crafting 
               premium cakes, arranging stunning flowers, and curating perfect gift combinations.
             </p>
