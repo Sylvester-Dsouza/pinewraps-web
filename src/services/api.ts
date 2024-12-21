@@ -68,12 +68,18 @@ export function generateSlug(name: string): string {
 // Helper function to find product by slug
 export const getProductBySlug = async (slug: string) => {
   try {
-    const response = await fetch(`${API_URL}/api/products/public/${slug}`);
+    const response = await fetch(`${API_URL}/api/products/public/${encodeURIComponent(slug)}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch product');
+    }
     const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch product');
+    }
     return data;
   } catch (error) {
     console.error('Error fetching product by slug:', error);
-    return { data: null };
+    return { success: false, data: null };
   }
 };
 

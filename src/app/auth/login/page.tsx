@@ -25,7 +25,8 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmail(email, password);
-      router.push('/');
+      toast.success('Signed in successfully');
+      router.push('/account');
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast.error(error.message || 'Failed to sign in');
@@ -61,7 +62,7 @@ export default function LoginPage() {
       setIsLoading(true);
       await signInWithFacebook();
       toast.success('Signed in successfully');
-      router.push('/');
+      router.push('/account');
     } catch (error: any) {
       console.error('Facebook sign in error:', error);
       if (error.message === 'Sign in cancelled by user') {
@@ -81,7 +82,7 @@ export default function LoginPage() {
       setIsLoading(true);
       await signInWithApple();
       toast.success('Signed in successfully');
-      router.push('/');
+      router.push('/account');
     } catch (error: any) {
       console.error('Apple sign in error:', error);
       if (error.message === 'Sign in cancelled by user') {

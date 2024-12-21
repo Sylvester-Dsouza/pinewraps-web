@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
   // Check for x-redirect-location header
   const redirectUrl = request.headers.get('x-redirect-location');
@@ -13,6 +12,11 @@ export function middleware(request: NextRequest) {
   const firebaseSession = request.cookies.get('__session')
   const authToken = request.cookies.get('authToken')?.value || request.headers.get('authorization')?.split('Bearer ')[1]
   
+  // If user is logged in and tries to access login/register pages, redirect to account
+  if ((request.nextUrl.pathname.startsWith('/auth/login') || request.nextUrl.pathname.startsWith('/auth/register')) && (firebaseSession || authToken)) {
+    return NextResponse.redirect(new URL('/account', request.url))
+  }
+
   // Check if the request is for a protected route
   if (request.nextUrl.pathname.startsWith('/account')) {
     // If neither session cookie nor auth token exists, redirect to login
@@ -46,6 +50,8 @@ export const config = {
   matcher: [
     '/account/:path*',
     '/checkout/:path*',
-    '/shop/:path*'
+    '/shop/:path*',
+    '/auth/login',
+    '/auth/register'
   ]
 }
