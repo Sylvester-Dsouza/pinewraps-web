@@ -110,17 +110,22 @@ export default function CheckoutPage() {
     return state.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   }, [state.items]);
 
-  const deliveryFee = deliveryMethod === 'delivery' 
-    ? selectedEmirate?.toUpperCase() === 'DUBAI' ? 30 : 50
-    : 0;
+  const deliveryFee = useMemo(() => {
+    return deliveryMethod === 'delivery' 
+      ? selectedEmirate?.toUpperCase() === 'DUBAI' ? 30 : 50
+      : 0;
+  }, [deliveryMethod, selectedEmirate]);
 
   const maxRedeemablePoints = customerRewards?.points || 0;
   const rewardsDiscount = useRewardPoints ? Math.min((maxRedeemablePoints * 0.25), subtotal * 0.25) : 0;
-  const discount = appliedCoupon?.discount || 0;
+  const couponDiscount = appliedCoupon?.discount || 0;
 
   const total = useMemo(() => {
-    return Math.max(0, subtotal - discount - rewardsDiscount + deliveryFee);
-  }, [subtotal, discount, rewardsDiscount, deliveryFee]);
+    // Calculate total with all discounts and fees
+    const calculatedTotal = Math.max(0, subtotal - couponDiscount - rewardsDiscount + deliveryFee);
+    // Round to 2 decimal places to avoid floating point issues
+    return Math.round(calculatedTotal * 100) / 100;
+  }, [subtotal, couponDiscount, rewardsDiscount, deliveryFee]);
 
   // Calculate points to be earned based on tier
   const pointsToEarn = useMemo(() => {
@@ -194,16 +199,20 @@ export default function CheckoutPage() {
         })),
         subtotal,
         total,
+        couponDiscount,
+        rewardsDiscount,
+        deliveryFee,
+        
+        // Coupon Information
+        couponCode: appliedCoupon?.code,
+        
+        // Points Information
+        pointsToEarn,
+        pointsRedeemed: useRewardPoints ? maxRedeemablePoints : 0,
         
         // Optional Information
         isGift: shippingDetails.isGift,
         giftMessage: shippingDetails.giftMessage,
-        
-        // Points & Discounts
-        pointsRedeemed: useRewardPoints ? (customerRewards?.points || 0) : 0,
-        discount: discount || 0,
-        rewardsDiscount: rewardsDiscount || 0,
-        couponCode: appliedCoupon?.code
       };
 
       console.log('Submitting order:', orderData); // Debug log
@@ -468,10 +477,10 @@ export default function CheckoutPage() {
                       <span>AED {deliveryFee.toFixed(2)}</span>
                     </div>
                   )}
-                  {discount > 0 && (
+                  {couponDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Coupon Discount</span>
-                      <span>-AED {discount.toFixed(2)}</span>
+                      <span>-AED {couponDiscount.toFixed(2)}</span>
                     </div>
                   )}
                   {rewardsDiscount > 0 && (
