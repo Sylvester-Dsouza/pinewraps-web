@@ -44,10 +44,10 @@ export default function ContactPage() {
               <h3 className="font-semibold text-xl mb-2">Call Us</h3>
               <p className="text-gray-600 mb-4">Available 9 AM - 9 PM</p>
               <a 
-                href="tel:+971585885050" 
+                href="tel:+971544044864" 
                 className="text-primary hover:underline text-lg font-medium"
               >
-                +971 58 588 5050
+                +971544044864
               </a>
             </div>
           </Card>
@@ -61,7 +61,7 @@ export default function ContactPage() {
               <h3 className="font-semibold text-xl mb-2">WhatsApp</h3>
               <p className="text-gray-600 mb-4">Quick Response Guaranteed</p>
               <a 
-                href="https://wa.me/971585885050" 
+                href="https://wa.me/971544044864" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-green-500 hover:underline text-lg font-medium"
@@ -91,7 +91,7 @@ export default function ContactPage() {
 
         {/* Map */}
         <Card className="p-0 overflow-hidden">
-          <div className="p-8 bg-gray-50">
+          {/* <div className="p-8 bg-gray-50">
             <div className="flex items-start space-x-4 mb-6">
               <div className="bg-primary/10 p-3 rounded-lg">
                 <MapPin className="h-6 w-6 text-primary" />
@@ -109,9 +109,9 @@ export default function ContactPage() {
                 </a>
               </div>
             </div>
-          </div>
+          </div> */}
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3609.6774561861897!2d55.2667!3d25.1857!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjXCsDExJzA4LjUiTiA1NcKwMTYnMDAuMSJF!5e0!3m2!1sen!2sae!4v1640000000000!5m2!1sen!2sae"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14784539.742683245!2d37.32330322265626!3d25.21985072545473!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f43422b09be9d%3A0x23eefc97ad256623!2sPine%20Wraps!5e0!3m2!1sen!2sin!4v1734805943746!5m2!1sen!2sin"
             width="100%"
             height="450"
             style={{ border: 0 }}

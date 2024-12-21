@@ -154,19 +154,32 @@ export const storePickupSlots = [
 ];
 
 export function getStorePickupSlots(date: Date): string[] {
+  // Convert to Dubai timezone
   const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
+  const dubaiTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Dubai' }));
+  
+  // Convert input date to Dubai timezone for comparison
+  const dubaiDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Dubai' }));
+  const isToday = dubaiDate.toDateString() === dubaiTime.toDateString();
   
   if (!isToday) {
     return storePickupSlots;
   }
 
-  // If it's today, only return future time slots
-  const currentHour = now.getHours();
+  // If it's today, only return time slots that are at least 2 hours in the future
+  const currentHour = dubaiTime.getHours();
+  const currentMinute = dubaiTime.getMinutes();
+  
   return storePickupSlots.filter(slot => {
     const slotHour = parseInt(slot.split(':')[0]);
     const isPM = slot.includes('PM');
-    const hour24 = isPM && slotHour !== 12 ? slotHour + 12 : slotHour;
-    return hour24 > currentHour;
+    const hour24 = isPM && slotHour !== 12 ? slotHour + 12 : (slotHour === 12 ? 12 : slotHour);
+    
+    // Calculate the difference in hours, considering minutes
+    const hourDiff = hour24 - currentHour;
+    const effectiveHourDiff = hourDiff - (currentMinute > 0 ? 1 : 0);
+    
+    // Return true if the slot is at least 2 hours in the future
+    return effectiveHourDiff >= 2;
   });
 }

@@ -221,6 +221,8 @@ export default function CheckoutPage() {
         // Optional Information
         isGift: shippingDetails.isGift,
         giftMessage: shippingDetails.giftMessage,
+        giftRecipientName: shippingDetails.giftRecipientName,
+        giftRecipientPhone: shippingDetails.giftRecipientPhone,
       };
 
       console.log('Submitting order:', orderData); // Debug log
@@ -243,39 +245,33 @@ export default function CheckoutPage() {
       // Get order ID from response
       const { data } = await response.json();
 
-      if (shippingDetails.paymentMethod === 'CASH') {
-        // For cash on delivery, redirect to thank you page
-        clearCart();
-        router.push(`/thank-you?orderId=${data.id}`);
-      } else {
-        try {
-          // Show loading state immediately
-          setIsSubmitting(true);
-          
-          // For card payments, initialize N-Genius payment
-          const paymentUrl = await PaymentService.createPayment(data.id);
-          if (!paymentUrl) {
-            throw new Error('No payment URL received');
-          }
-          
-          // Clear cart only after successful payment initialization
-          clearCart();
-          
-          // Redirect to N-Genius payment page
-          window.location.href = paymentUrl;
-        } catch (paymentError) {
-          console.error('Payment initialization error:', paymentError);
-          
-          // Delete the pending order since payment failed
-          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders/${data.id}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          throw new Error('Payment initialization failed. Please try again.');
+      try {
+        // Show loading state immediately
+        setIsSubmitting(true);
+        
+        // Initialize N-Genius payment
+        const paymentUrl = await PaymentService.createPayment(data.id);
+        if (!paymentUrl) {
+          throw new Error('No payment URL received');
         }
+        
+        // Clear cart only after successful payment initialization
+        clearCart();
+        
+        // Redirect to N-Genius payment page
+        window.location.href = paymentUrl;
+      } catch (paymentError) {
+        console.error('Payment initialization error:', paymentError);
+        
+        // Delete the pending order since payment failed
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders/${data.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        throw new Error('Payment initialization failed. Please try again.');
       }
     } catch (error) {
       console.error('Order submission error:', error);

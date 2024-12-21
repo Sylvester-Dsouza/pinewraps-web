@@ -37,8 +37,8 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
         {/* WhatsApp Support */}
         <a 
-          href="https://wa.me/971501234567" 
-          target="_blank" 
+          href="https://wa.me/971544044864" 
+          target="_blank"
           rel="noopener noreferrer"
           className="flex items-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
         >
