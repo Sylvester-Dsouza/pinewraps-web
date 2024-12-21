@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'react-hot-toast';
-import { Plus } from 'lucide-react';
+import { Plus, MapPin } from 'lucide-react';
 import { getFullPhoneNumber, formatPhoneNumber } from '@/lib/format-phone';
 import { getAvailableTimeSlots, deliveryConfig, getStorePickupSlots } from '@/config/delivery-slots';
 
@@ -31,6 +31,16 @@ export interface ShippingDetails {
 interface ShippingFormProps {
   onSubmit: (details: ShippingDetails) => void;
   onDeliveryMethodChange: (method: 'delivery' | 'pickup', emirate: string) => void;
+}
+
+interface SavedAddress {
+  id: string;
+  street: string;
+  apartment?: string;
+  city: string;
+  emirate: string;
+  pincode?: string;
+  isDefault?: boolean;
 }
 
 const emirates = Object.keys(deliveryConfig).sort();
@@ -65,6 +75,8 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
     lastName: '',
     phone: ''
   });
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | 'new'>('new');
   const [errors, setErrors] = useState<Partial<ShippingDetails>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
@@ -91,19 +103,20 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
           return;
         }
 
-        const response = await fetch('/api/customers/auth/me', {
+        // Fetch customer data
+        const customerResponse = await fetch('/api/customers/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
+        if (customerResponse.ok) {
+          const customerResult = await customerResponse.json();
+          if (customerResult.success) {
             const customerData = {
-              firstName: data.data.firstName,
-              lastName: data.data.lastName,
-              phone: data.data.phone || ''
+              firstName: customerResult.data.firstName,
+              lastName: customerResult.data.lastName,
+              phone: customerResult.data.phone || ''
             };
             setCustomerData(customerData);
             setFormData(prev => ({
@@ -111,6 +124,33 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
               ...customerData,
               phone: customerData.phone ? formatPhoneNumber(customerData.phone) : ''
             }));
+          }
+        }
+
+        // Fetch saved addresses
+        const addressesResponse = await fetch('/api/customers/addresses', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (addressesResponse.ok) {
+          const addressesResult = await addressesResponse.json();
+          if (addressesResult.success) {
+            setSavedAddresses(addressesResult.data);
+            // If there's a default address, select it
+            const defaultAddress = addressesResult.data.find((addr: SavedAddress) => addr.isDefault);
+            if (defaultAddress) {
+              setSelectedAddressId(defaultAddress.id);
+              setFormData(prev => ({
+                ...prev,
+                address: defaultAddress.street,
+                apartment: defaultAddress.apartment || '',
+                city: defaultAddress.city,
+                emirate: defaultAddress.emirate,
+                pincode: defaultAddress.pincode || ''
+              }));
+            }
           }
         }
       } catch (error) {
@@ -524,111 +564,204 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
           {formData.deliveryMethod === 'delivery' && (
             <div className={sectionClasses}>
               <h2 className={sectionTitleClasses}>Shipping Address</h2>
-              <div className="space-y-6">
-                <div>
-                  <label htmlFor="address" className={labelClasses}>
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="House No, Building Name, Street"
-                    className={inputClasses('address')}
-                  />
-                  {errors.address && (
-                    <p className="mt-2 text-sm text-red-600">{errors.address}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="apartment" className={labelClasses}>
-                    Apartment/Suite/Unit (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    id="apartment"
-                    name="apartment"
-                    value={formData.apartment}
-                    onChange={handleChange}
-                    placeholder="Apartment, suite, or unit number"
-                    className={inputClasses('apartment')}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="emirate" className={labelClasses}>
-                    Emirate
-                  </label>
-                  <select
-                    id="emirate"
-                    name="emirate"
-                    value={formData.emirate}
-                    onChange={handleChange}
-                    className={inputClasses('emirate')}
-                  >
-                    <option value="">Select Emirate</option>
-                    {emirates.map((emirate) => (
-                      <option key={emirate} value={emirate}>
-                        {emirate}
-                      </option>
+              
+              {/* Saved Addresses */}
+              {savedAddresses.length > 0 && (
+                <div className="mb-6">
+                  <label className={labelClasses}>Select Address</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {savedAddresses.map((address) => (
+                      <div
+                        key={address.id}
+                        className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                          selectedAddressId === address.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-blue-200'
+                        }`}
+                        onClick={() => {
+                          setSelectedAddressId(address.id);
+                          setFormData(prev => ({
+                            ...prev,
+                            address: address.street,
+                            apartment: address.apartment || '',
+                            city: address.city,
+                            emirate: address.emirate,
+                            pincode: address.pincode || ''
+                          }));
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            checked={selectedAddressId === address.id}
+                            onChange={() => {}}
+                            className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-gray-500" />
+                              <p className="font-medium">{address.street}</p>
+                            </div>
+                            {address.apartment && (
+                              <p className="text-sm text-gray-500 mt-1">{address.apartment}</p>
+                            )}
+                            <p className="text-sm text-gray-500">
+                              {[address.city, address.emirate, address.pincode].filter(Boolean).join(', ')}
+                            </p>
+                            {address.isDefault && (
+                              <span className="inline-block mt-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                                Default Address
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </select>
-                  {errors.emirate && (
-                    <p className="mt-2 text-sm text-red-600">{errors.emirate}</p>
-                  )}
+                    
+                    {/* New Address Option */}
+                    <div
+                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                        selectedAddressId === 'new'
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-blue-200'
+                      }`}
+                      onClick={() => {
+                        setSelectedAddressId('new');
+                        setFormData(prev => ({
+                          ...prev,
+                          address: '',
+                          apartment: '',
+                          city: '',
+                          emirate: '',
+                          pincode: ''
+                        }));
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          checked={selectedAddressId === 'new'}
+                          onChange={() => {}}
+                          className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div className="flex items-center gap-2">
+                          <Plus className="h-4 w-4" />
+                          <span className="font-medium">Add New Address</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Address Form - Show when "New Address" is selected or no saved addresses exist */}
+              {(selectedAddressId === 'new' || savedAddresses.length === 0) && (
+                <div className="space-y-6">
                   <div>
-                    <label htmlFor="city" className={labelClasses}>
-                      City
+                    <label htmlFor="address" className={labelClasses}>
+                      Street Address
                     </label>
                     <input
                       type="text"
-                      id="city"
-                      name="city"
-                      value={formData.city}
+                      id="address"
+                      name="address"
+                      value={formData.address}
                       onChange={handleChange}
-                      className={inputClasses('city')}
+                      placeholder="House No, Building Name, Street"
+                      className={inputClasses('address')}
                     />
-                    {errors.city && (
-                      <p className="mt-2 text-sm text-red-600">{errors.city}</p>
+                    {errors.address && (
+                      <p className="mt-2 text-sm text-red-600">{errors.address}</p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="pincode" className={labelClasses}>
-                      PIN Code (Optional)
+                    <label htmlFor="apartment" className={labelClasses}>
+                      Apartment/Suite/Unit (Optional)
                     </label>
                     <input
                       type="text"
-                      id="pincode"
-                      name="pincode"
-                      value={formData.pincode}
+                      id="apartment"
+                      name="apartment"
+                      value={formData.apartment}
                       onChange={handleChange}
-                      placeholder="Enter PIN code (optional)"
-                      className={inputClasses('pincode')}
+                      placeholder="Apartment, suite, or unit number"
+                      className={inputClasses('apartment')}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="emirate" className={labelClasses}>
+                      Emirate
+                    </label>
+                    <select
+                      id="emirate"
+                      name="emirate"
+                      value={formData.emirate}
+                      onChange={handleChange}
+                      className={inputClasses('emirate')}
+                    >
+                      <option value="">Select Emirate</option>
+                      {emirates.map((emirate) => (
+                        <option key={emirate} value={emirate}>
+                          {emirate}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.emirate && (
+                      <p className="mt-2 text-sm text-red-600">{errors.emirate}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="city" className={labelClasses}>
+                        City
+                      </label>
+                      <input
+                        type="text"
+                        id="city"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        className={inputClasses('city')}
+                      />
+                      {errors.city && (
+                        <p className="mt-2 text-sm text-red-600">{errors.city}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="pincode" className={labelClasses}>
+                        PIN Code (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        id="pincode"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleChange}
+                        placeholder="Enter PIN code (optional)"
+                        className={inputClasses('pincode')}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="country" className={labelClasses}>
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      id="country"
+                      name="country"
+                      value="United Arab Emirates"
+                      className={`${inputClasses('country')} bg-gray-50`}
+                      readOnly
                     />
                   </div>
                 </div>
-
-                <div>
-                  <label htmlFor="country" className={labelClasses}>
-                    Country
-                  </label>
-                  <input
-                    type="text"
-                    id="country"
-                    name="country"
-                    value="United Arab Emirates"
-                    className={`${inputClasses('country')} bg-gray-50`}
-                    readOnly
-                  />
-                </div>
-              </div>
+              )}
             </div>
           )}
 

@@ -79,11 +79,11 @@ export default function Navbar() {
               <Image 
                 src="/images/logo.png" 
                 alt="Pinewraps Logo" 
-                width={200}
-                height={100}
+                width={300}
+                height={200}
                 className="h-10 w-auto object-contain" 
                 priority
-                quality={90}
+                quality={99}
                 style={{ maxWidth: 'min(200px, 50%)', height: 'auto' }}
               />
             </Link>

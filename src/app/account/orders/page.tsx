@@ -246,7 +246,6 @@ function OrderDetailsModal({ order, onClose }: { order: Order; onClose: () => vo
 }
 
 function OrderCard({ order }: { order: Order }) {
-  const [showDetails, setShowDetails] = useState(false);
   const { user } = useAuth();
 
   return (
@@ -330,17 +329,14 @@ function OrderCard({ order }: { order: Order }) {
       )}
 
       <div className="mt-4 pt-4 border-t flex justify-end gap-3">
-        <button
-          onClick={() => setShowDetails(true)}
-          className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 transition-colors"
-        >
-          View Details
-        </button>
+        <Link href={`/account/orders/${order.id}`}>
+          <button
+            className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 transition-colors"
+          >
+            View Details
+          </button>
+        </Link>
       </div>
-
-      {showDetails && (
-        <OrderDetailsModal order={order} onClose={() => setShowDetails(false)} />
-      )}
     </div>
   );
 }
