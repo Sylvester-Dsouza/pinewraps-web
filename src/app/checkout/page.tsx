@@ -199,14 +199,10 @@ export default function CheckoutPage() {
         })),
         subtotal,
         total,
-        couponDiscount,
-        rewardsDiscount,
+        couponCode: appliedCoupon?.code || '',
+        couponDiscount: couponDiscount,
+        rewardsDiscount: rewardsDiscount,
         deliveryFee,
-        
-        // Coupon Information
-        couponCode: appliedCoupon?.code,
-        
-        // Points Information
         pointsToEarn,
         pointsRedeemed: useRewardPoints ? maxRedeemablePoints : 0,
         
