@@ -105,9 +105,9 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  // Calculate totals
+  // Calculate totals with whole numbers
   const subtotal = useMemo(() => {
-    return state.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    return Math.floor(state.items.reduce((acc, item) => acc + (item.price * item.quantity), 0));
   }, [state.items]);
 
   const deliveryFee = useMemo(() => {
@@ -117,15 +117,26 @@ export default function CheckoutPage() {
   }, [deliveryMethod, selectedEmirate]);
 
   const maxRedeemablePoints = customerRewards?.points || 0;
-  const rewardsDiscount = useRewardPoints ? Math.min((maxRedeemablePoints * 0.25), subtotal * 0.25) : 0;
-  const couponDiscount = appliedCoupon?.discount || 0;
+  const rewardsDiscount = Math.floor(useRewardPoints ? Math.min((maxRedeemablePoints * 0.25), subtotal * 0.25) : 0);
+  const couponDiscount = Math.floor(appliedCoupon?.discount || 0);
 
+  // Calculate total with all discounts and fees
   const total = useMemo(() => {
-    // Calculate total with all discounts and fees
-    const calculatedTotal = Math.max(0, subtotal - couponDiscount - rewardsDiscount + deliveryFee);
-    // Round to 2 decimal places to avoid floating point issues
-    return Math.round(calculatedTotal * 100) / 100;
+    return Math.floor(Math.max(0, 
+      subtotal // Base price (already floored)
+      - couponDiscount // Coupon discount (already floored)
+      - rewardsDiscount // Points discount (already floored)
+      + deliveryFee // Delivery fee (whole number)
+    ));
   }, [subtotal, couponDiscount, rewardsDiscount, deliveryFee]);
+
+  console.log('Checkout total calculation:', {
+    subtotal,
+    couponDiscount,
+    rewardsDiscount,
+    deliveryFee,
+    finalTotal: total
+  });
 
   // Calculate points to be earned based on tier
   const pointsToEarn = useMemo(() => {
@@ -176,7 +187,7 @@ export default function CheckoutPage() {
         pincode: shippingDetails.pincode,
         
         // Delivery Information
-        deliveryMethod: deliveryMethod === 'delivery' ? 'DELIVERY' : 'PICKUP',
+        deliveryMethod: deliveryMethod.toUpperCase(),
         deliveryDate: shippingDetails.deliveryDate,
         deliveryTimeSlot: shippingDetails.deliveryTime,
         deliveryFee,
@@ -198,13 +209,14 @@ export default function CheckoutPage() {
           cakeWriting: item.cakeWriting || ''
         })),
         subtotal,
-        total,
+        total, // This is the final calculated total after all discounts
         couponCode: appliedCoupon?.code || '',
-        couponDiscount: couponDiscount,
-        rewardsDiscount: rewardsDiscount,
-        deliveryFee,
-        pointsToEarn,
+        couponDiscount,
         pointsRedeemed: useRewardPoints ? maxRedeemablePoints : 0,
+        rewardsDiscount,
+        deliveryFee,
+        selectedEmirate: selectedEmirate.toUpperCase(), // Normalize emirate case
+        pointsToEarn,
         
         // Optional Information
         isGift: shippingDetails.isGift,
@@ -476,7 +488,7 @@ export default function CheckoutPage() {
                   {couponDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Coupon Discount</span>
-                      <span>-AED {couponDiscount.toFixed(2)}</span>
+                      <span>-AED {couponDiscount}</span>
                     </div>
                   )}
                   {rewardsDiscount > 0 && (
@@ -487,7 +499,7 @@ export default function CheckoutPage() {
                   )}
                   <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                     <span>Total</span>
-                    <span>AED {total.toFixed(2)}</span>
+                    <span>AED {total}</span>
                   </div>
                 </div>
                 <div className="flex justify-between">
