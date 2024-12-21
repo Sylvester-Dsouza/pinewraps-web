@@ -135,3 +135,38 @@ export function getAvailableTimeSlots(emirate: string, deliveryDate: Date): stri
     .filter((_, index) => isTimeSlotAvailable(emirate, index, deliveryDate))
     .map(slot => slot.slot);
 }
+
+// Store pickup time slots from 9 AM to 9 PM
+export const storePickupSlots = [
+  '9:00 AM',
+  '10:00 AM',
+  '11:00 AM',
+  '12:00 PM',
+  '1:00 PM',
+  '2:00 PM',
+  '3:00 PM',
+  '4:00 PM',
+  '5:00 PM',
+  '6:00 PM',
+  '7:00 PM',
+  '8:00 PM',
+  '9:00 PM'
+];
+
+export function getStorePickupSlots(date: Date): string[] {
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  
+  if (!isToday) {
+    return storePickupSlots;
+  }
+
+  // If it's today, only return future time slots
+  const currentHour = now.getHours();
+  return storePickupSlots.filter(slot => {
+    const slotHour = parseInt(slot.split(':')[0]);
+    const isPM = slot.includes('PM');
+    const hour24 = isPM && slotHour !== 12 ? slotHour + 12 : slotHour;
+    return hour24 > currentHour;
+  });
+}

@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'react-hot-toast';
 import { Plus } from 'lucide-react';
 import { getFullPhoneNumber, formatPhoneNumber } from '@/lib/format-phone';
-import { getAvailableTimeSlots, deliveryConfig } from '@/config/delivery-slots';
+import { getAvailableTimeSlots, deliveryConfig, getStorePickupSlots } from '@/config/delivery-slots';
 
 export interface ShippingDetails {
   email: string;
@@ -121,16 +121,15 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
   }, [user]);
 
   useEffect(() => {
-    if (formData.emirate && formData.deliveryDate) {
-      const slots = getAvailableTimeSlots(formData.emirate, new Date(formData.deliveryDate));
+    // Update available time slots when delivery method or date changes
+    if (formData.deliveryDate) {
+      const date = new Date(formData.deliveryDate);
+      const slots = formData.deliveryMethod === 'pickup' 
+        ? getStorePickupSlots(date)
+        : getAvailableTimeSlots(formData.emirate, date);
       setAvailableTimeSlots(slots);
-      
-      // If current selected time is not available, clear it
-      if (formData.deliveryTime && !slots.includes(formData.deliveryTime)) {
-        setFormData(prev => ({ ...prev, deliveryTime: '' }));
-      }
     }
-  }, [formData.emirate, formData.deliveryDate]);
+  }, [formData.deliveryDate, formData.deliveryMethod, formData.emirate]);
 
   const validateForm = () => {
     const newErrors: Partial<ShippingDetails> = {};
@@ -228,6 +227,16 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
     if (errors[name as keyof ShippingDetails]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
+  };
+
+  const handleDeliveryMethodChange = (method: 'delivery' | 'pickup') => {
+    setFormData(prev => ({
+      ...prev,
+      deliveryMethod: method,
+      deliveryTime: '', // Reset delivery time when changing method
+      emirate: method === 'pickup' ? 'Dubai' : prev.emirate // Set Dubai for pickup
+    }));
+    onDeliveryMethodChange(method, method === 'pickup' ? 'Dubai' : formData.emirate);
   };
 
   const inputClasses = (fieldName: string) => `
@@ -345,9 +354,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-blue-200'
                     }`}
-                    onClick={() => handleChange({
-                      target: { name: 'deliveryMethod', value: 'pickup' },
-                    } as any)}
+                    onClick={() => handleDeliveryMethodChange('pickup')}
                   >
                     <div className="flex items-center space-x-3">
                       <input
@@ -370,9 +377,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-blue-200'
                     }`}
-                    onClick={() => handleChange({
-                      target: { name: 'deliveryMethod', value: 'delivery' },
-                    } as any)}
+                    onClick={() => handleDeliveryMethodChange('delivery')}
                   >
                     <div className="flex items-center space-x-3">
                       <input

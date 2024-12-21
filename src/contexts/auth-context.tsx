@@ -17,7 +17,8 @@ import {
   updateProfile,
   updatePassword,
   EmailAuthProvider,
-  reauthenticateWithCredential
+  reauthenticateWithCredential,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 
@@ -58,6 +59,7 @@ interface AuthContextType {
   updateUserProfile: (data: { firstName: string; lastName: string; phone: string; dateOfBirth?: string }) => Promise<void>;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
   isEmailUser: boolean;
+  sendPasswordReset: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -552,6 +554,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const sendPasswordReset = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast.success('Password reset email sent! Check your inbox.');
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      if (error.code === 'auth/user-not-found') {
+        toast.error('No account found with this email address');
+      } else if (error.code === 'auth/invalid-email') {
+        toast.error('Invalid email address');
+      } else {
+        toast.error('Failed to send password reset email. Please try again.');
+      }
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
@@ -567,22 +586,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isEmailUser = user?.providerData[0]?.providerId === 'password';
 
+  const value = {
+    user,
+    customerData,
+    loading,
+    signInWithGoogle,
+    signInWithFacebook,
+    signInWithApple,
+    signInWithEmail,
+    signUpWithEmail,
+    signOut,
+    checkEmailSignInMethods,
+    updateUserProfile,
+    updateUserPassword,
+    isEmailUser,
+    sendPasswordReset
+  };
+
   return (
-    <AuthContext.Provider value={{
-      user,
-      customerData,
-      loading,
-      signInWithGoogle,
-      signInWithFacebook,
-      signInWithApple,
-      signInWithEmail,
-      signUpWithEmail,
-      signOut,
-      checkEmailSignInMethods,
-      updateUserProfile,
-      updateUserPassword,
-      isEmailUser
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

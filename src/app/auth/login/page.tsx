@@ -105,7 +105,7 @@ export default function LoginPage() {
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleEmailSignIn}>
-          <div className="rounded-md shadow-sm space-y-4">
+          <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" className="sr-only">
                 Email address
@@ -116,9 +116,11 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Email address"
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -131,10 +133,20 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Password"
+                disabled={isLoading}
               />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <Link href="/auth/forgot-password" className="font-medium text-primary hover:text-primary/90">
+                Forgot your password?
+              </Link>
             </div>
           </div>
 
