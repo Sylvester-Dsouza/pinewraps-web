@@ -93,7 +93,9 @@ export default async function ProductPage({ params }: PageProps) {
             <ProductPricing 
               basePrice={product.basePrice}
               variations={product.variations || []}
-              combinations={JSON.parse(product.variantCombinations?.toString() || '[]')}
+              combinations={typeof product.variantCombinations === 'string' 
+                ? JSON.parse(product.variantCombinations || '[]')
+                : product.variantCombinations || []}
               productId={product.id}
               productName={product.name}
               imageUrl={product.images?.[0]?.url || '/placeholder.jpg'}
