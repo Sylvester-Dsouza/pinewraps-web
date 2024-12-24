@@ -2,15 +2,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import Navbar from '@/components/layout/navbar'
-
-// Add this type for products
-type Product = {
-  id: string;
-  name: string;
-  basePrice: number;
-  images: { url: string }[];
-  slug: string;
-};
+import { Product } from '@/types/product'
+import { getProductPrice } from '@/utils/product'
+import { formatPrice } from '@/utils/format'
 
 // Add this async function to fetch products
 async function getNewArrivals(): Promise<Product[]> {
@@ -109,7 +103,7 @@ export default async function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-6 left-6">
                   <h3 className="text-2xl font-bold text-white">Flowers</h3>
-                  <p className="text-white/90 mt-2">Fresh and beautiful</p>
+                  <p className="text-white/90 mt-2">Fresh daily blooms</p>
                 </div>
               </div>
             </Link>
@@ -135,17 +129,13 @@ export default async function Home() {
       </section>
 
       {/* New Arrivals Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">New Arrivals</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-            {newArrivals && newArrivals.length > 0 ? (
-              newArrivals.slice(0, 8).map((product) => (
-                <Link 
-                  key={product.id} 
-                  href={`/shop/${product.slug}`} 
-                  className="group"
-                >
+      {newArrivals.length > 0 && (
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-center mb-12">New Arrivals</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {newArrivals.map((product) => (
+                <Link key={product.id} href={`/shop/${product.slug}`} className="group">
                   <div className="relative aspect-square rounded-lg overflow-hidden mb-4">
                     <Image
                       src={product.images?.[0]?.url || '/images/placeholder.jpg'}
@@ -158,36 +148,19 @@ export default async function Home() {
                     {product.name}
                   </h3>
                   <p className="mt-1 text-gray-500">
-                    {product.basePrice} AED
+                    {(() => {
+                      const price = getProductPrice(product);
+                      return price.max 
+                        ? `${formatPrice(price.min)} - ${formatPrice(price.max)}` 
+                        : formatPrice(price.min);
+                    })()}
                   </p>
                 </Link>
-              ))
-            ) : (
-              <p className="col-span-full text-center text-gray-500">No products available</p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Fast Delivery</h3>
-              <p className="text-gray-600">Same day delivery available</p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Premium Quality</h3>
-              <p className="text-gray-600">Handcrafted with finest ingredients</p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Secure Payment</h3>
-              <p className="text-gray-600">100% secure checkout</p>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </main>
-  )
+  );
 }

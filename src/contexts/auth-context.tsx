@@ -543,13 +543,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user || !user.email) throw new Error('No user logged in');
 
     try {
+      // Validate password requirements
+      if (newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters long');
+      }
+
+      // Create credentials with current password
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(user, credential);
+      
+      // First re-authenticate
+      try {
+        await reauthenticateWithCredential(user, credential);
+      } catch (error: any) {
+        if (error.code === 'auth/wrong-password') {
+          throw new Error('Current password is incorrect');
+        }
+        throw error;
+      }
+
+      // Then update password
       await updatePassword(user, newPassword);
+      
       toast.success('Password updated successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating password:', error);
-      toast.error('Failed to update password');
+      
+      // Handle specific error cases
+      if (error.code === 'auth/requires-recent-login') {
+        toast.error('Please sign in again before changing your password');
+      } else if (error.code === 'auth/weak-password') {
+        toast.error('Password is too weak. Please use a stronger password');
+      } else {
+        toast.error(error.message || 'Failed to update password');
+      }
+      
       throw error;
     }
   };

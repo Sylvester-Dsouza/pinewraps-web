@@ -8,52 +8,36 @@ import { Product } from '@/types/product';
 import { getProductPrice } from '@/utils/product';
 import { formatPrice } from '@/utils/format';
 
-export default function SetsPage() {
+function SetsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // First, get the category ID for Sets
-        const categoryRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/categories/public`,
-          { cache: 'no-store' }
-        );
-        
-        if (!categoryRes.ok) {
-          throw new Error('Failed to fetch categories');
-        }
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/products/public?categoryId=CAT_SETS&status=ACTIVE`;
+        console.log('Fetching products from:', apiUrl);
 
-        const categoryData = await categoryRes.json();
-        const setsCategory = categoryData.data.find((cat: any) => cat.name === 'Sets');
-
-        if (!setsCategory) {
-          console.error('Available categories:', categoryData.data);
-          throw new Error('Sets category not found');
-        }
-
-        // Then fetch products for this category
-        const productsRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/products/public?categoryId=${setsCategory.id}&status=ACTIVE`,
-          { 
-            cache: 'no-store',
-            headers: {
-              'Content-Type': 'application/json'
-            }
+        const productsRes = await fetch(apiUrl, { 
+          cache: 'no-store',
+          headers: {
+            'Content-Type': 'application/json'
           }
-        );
+        });
         
         if (!productsRes.ok) {
+          console.error('API response not OK:', productsRes.status, productsRes.statusText);
           throw new Error('Failed to fetch products');
         }
 
         const productsData = await productsRes.json();
-        // Filter products to only show those in the Sets category
-        const setProducts = productsData.data.filter((product: any) => 
-          product.category?.id === setsCategory.id
-        );
-        setProducts(setProducts);
+        console.log('Raw API response:', productsData);
+
+        if (productsData.success && Array.isArray(productsData.data)) {
+          setProducts(productsData.data);
+        } else {
+          setProducts([]);
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
         setProducts([]);
@@ -128,3 +112,5 @@ export default function SetsPage() {
     </div>
   );
 }
+
+export default SetsPage;

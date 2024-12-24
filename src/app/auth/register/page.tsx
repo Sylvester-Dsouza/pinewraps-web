@@ -73,7 +73,11 @@ export default function RegisterPage() {
         lastName,
         phone: getFullPhoneNumber(phoneNumber)
       });
-      router.push('/');
+      
+      // Add a 2-second delay before redirecting
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      router.push('/account');
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast.error(error.message || 'Failed to sign up');
@@ -86,7 +90,7 @@ export default function RegisterPage() {
     try {
       setIsLoading(true);
       await signInWithGoogle();
-      router.push('/');
+      router.push('/account');
     } catch (error: any) {
       console.error('Google sign in error:', error);
       if (error.message !== 'Sign in cancelled by user') {

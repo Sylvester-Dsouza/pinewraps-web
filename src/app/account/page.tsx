@@ -97,21 +97,58 @@ export default function ProfilePage() {
   };
 
   const handleUpdatePassword = async () => {
+    // Basic validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
 
+    if (newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+
+    // Password strength validation
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    const hasNumber = /\d/.test(newPassword);
+    if (!hasLetter || !hasNumber) {
+      toast.error('Password must contain both letters and numbers');
+      return;
+    }
+
     try {
+      setLoading(true);
       await updateUserPassword(currentPassword, newPassword);
       setIsChangingPassword(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      toast.success('Password updated successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating password:', error);
-      toast.error('Failed to update password');
+      // Error is already handled by the auth context
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSignInMethod = () => {
+    if (!user) return 'Not signed in';
+    if (isEmailUser) return 'Email and Password login';
+    
+    // Get the provider ID from the first provider data
+    const providerId = user.providerData[0]?.providerId;
+    switch (providerId) {
+      case 'google.com':
+        return 'Signed in with Google';
+      case 'apple.com':
+        return 'Signed in with Apple';
+      default:
+        return 'Social login';
     }
   };
 
@@ -260,11 +297,7 @@ export default function ProfilePage() {
 
         <div className="flex items-center space-x-3 text-gray-600">
           <Lock className="h-5 w-5" />
-          <span>
-            {isEmailUser
-              ? 'Email and Password login'
-              : 'Signed in with Google'}
-          </span>
+          <span>{getSignInMethod()}</span>
         </div>
 
         {/* Change Password Dialog */}
@@ -273,7 +306,11 @@ export default function ProfilePage() {
             <DialogHeader>
               <DialogTitle>Change Password</DialogTitle>
               <DialogDescription>
-                Enter your current password and choose a new one.
+                Enter your current password and choose a new one. The new password must:
+                <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                  <li>Be at least 6 characters long</li>
+                  <li>Contain both letters and numbers</li>
+                </ul>
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
@@ -287,6 +324,7 @@ export default function ProfilePage() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="col-span-3"
+                  disabled={loading}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -299,6 +337,7 @@ export default function ProfilePage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="col-span-3"
+                  disabled={loading}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -311,15 +350,23 @@ export default function ProfilePage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="col-span-3"
+                  disabled={loading}
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-4 pt-4 border-t">
-              <Button variant="outline" onClick={() => setIsChangingPassword(false)}>
+            <div className="flex justify-end space-x-4 pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsChangingPassword(false)}
+                disabled={loading}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleUpdatePassword}>
-                Update Password
+              <Button 
+                onClick={handleUpdatePassword}
+                disabled={loading}
+              >
+                {loading ? 'Updating...' : 'Update Password'}
               </Button>
             </div>
           </DialogContent>
