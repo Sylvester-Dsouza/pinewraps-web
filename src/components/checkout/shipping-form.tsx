@@ -164,14 +164,43 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
     fetchCustomerData();
   }, [user]);
 
+  // Get minimum date based on delivery method
+  const getMinDate = () => {
+    const today = new Date();
+    today.setHours(today.getHours() + 4); // Adjust to Dubai time
+    
+    if (formData.deliveryMethod === 'pickup') {
+      return today.toISOString().split('T')[0]; // Allow today for pickup
+    }
+    
+    // For delivery, use tomorrow
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
+  // Get available time slots based on selected date and delivery method
   useEffect(() => {
-    // Update available time slots when delivery method or date changes
-    if (formData.deliveryDate) {
-      const date = new Date(formData.deliveryDate);
-      const slots = formData.deliveryMethod === 'pickup' 
-        ? getStorePickupSlots(date)
-        : getAvailableTimeSlots(formData.emirate, date);
+    if (!formData.deliveryDate) return;
+
+    const selectedDate = new Date(formData.deliveryDate);
+    
+    if (formData.deliveryMethod === 'pickup') {
+      const slots = getStorePickupSlots(selectedDate);
       setAvailableTimeSlots(slots);
+      
+      // Clear selected time if it's no longer available
+      if (formData.deliveryTime && !slots.includes(formData.deliveryTime)) {
+        setFormData(prev => ({ ...prev, deliveryTime: '' }));
+      }
+    } else {
+      const slots = getAvailableTimeSlots(formData.emirate, selectedDate);
+      setAvailableTimeSlots(slots);
+      
+      // Clear selected time if it's no longer available
+      if (formData.deliveryTime && !slots.includes(formData.deliveryTime)) {
+        setFormData(prev => ({ ...prev, deliveryTime: '' }));
+      }
     }
   }, [formData.deliveryDate, formData.deliveryMethod, formData.emirate]);
 
@@ -294,12 +323,6 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
   const labelClasses = 'block text-sm font-semibold text-gray-700 mb-1';
   const sectionClasses = 'bg-white p-6 rounded-lg shadow-sm space-y-6 border border-gray-100';
   const sectionTitleClasses = 'text-xl font-bold text-gray-900 mb-6';
-
-  // Get tomorrow's date for minimum date selection in Dubai timezone
-  const tomorrow = new Date();
-  tomorrow.setHours(tomorrow.getHours() + 4); // Adjust to Dubai time
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8" id="shipping-form">
@@ -528,7 +551,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                       name="deliveryDate"
                       value={formData.deliveryDate}
                       onChange={handleChange}
-                      min={minDate}
+                      min={getMinDate()}
                       className={inputClasses('deliveryDate')}
                     />
                   </div>
@@ -781,7 +804,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                       name="deliveryDate"
                       value={formData.deliveryDate}
                       onChange={handleChange}
-                      min={minDate}
+                      min={getMinDate()}
                       className={inputClasses('deliveryDate')}
                     />
                     {errors.deliveryDate && (

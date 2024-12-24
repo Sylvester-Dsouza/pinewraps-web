@@ -13,6 +13,10 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Pinewraps',
   description: 'Delicious treats and custom cakes',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/favicon.ico'
+  }
 };
 
 export default function RootLayout({
@@ -22,6 +26,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+      </head>
       <body className={`${inter.className} bg-white text-black min-h-screen flex flex-col`}>
         <AuthProvider>
           <CartProvider>
