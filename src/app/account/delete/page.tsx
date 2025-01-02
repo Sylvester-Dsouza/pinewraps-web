@@ -2,21 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-<<<<<<< HEAD
 import { useAuth } from '@/contexts/auth-context';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-=======
-import { useAuth } from '@/contexts/AuthContext';
-import { getAuth } from 'firebase/auth';
->>>>>>> 45bbb08506628b55dd97cf8698c2bdfadc796a8b
 import { toast } from 'react-hot-toast';
+import { auth as firebaseAuth } from '@/lib/firebase';
 
 export default function DeleteAccount() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [password, setPassword] = useState('');
   const router = useRouter();
   const { user, logout } = useAuth();
-  const auth = getAuth();
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,12 +25,9 @@ export default function DeleteAccount() {
       setIsDeleting(true);
 
       // Reauthenticate user
-<<<<<<< HEAD
+      const auth = getAuth();
       const credential = await signInWithEmailAndPassword(
         auth,
-=======
-      const credential = await auth.signInWithEmailAndPassword(
->>>>>>> 45bbb08506628b55dd97cf8698c2bdfadc796a8b
         user.email!,
         password
       );

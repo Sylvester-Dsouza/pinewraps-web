@@ -86,7 +86,7 @@ export default async function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-6 left-6">
                   <h3 className="text-2xl font-bold text-white">Cakes</h3>
-                  <p className="text-white/90 mt-2">Hand Crafted with love</p>
+                  <p className="text-white/90 mt-2">Handcrafted with love</p>
                 </div>
               </div>
             </Link>
