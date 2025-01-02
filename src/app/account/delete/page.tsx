@@ -2,8 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+<<<<<<< HEAD
 import { useAuth } from '@/contexts/auth-context';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+=======
+import { useAuth } from '@/contexts/AuthContext';
+import { getAuth } from 'firebase/auth';
+>>>>>>> 45bbb08506628b55dd97cf8698c2bdfadc796a8b
 import { toast } from 'react-hot-toast';
 
 export default function DeleteAccount() {
@@ -25,8 +30,12 @@ export default function DeleteAccount() {
       setIsDeleting(true);
 
       // Reauthenticate user
+<<<<<<< HEAD
       const credential = await signInWithEmailAndPassword(
         auth,
+=======
+      const credential = await auth.signInWithEmailAndPassword(
+>>>>>>> 45bbb08506628b55dd97cf8698c2bdfadc796a8b
         user.email!,
         password
       );
