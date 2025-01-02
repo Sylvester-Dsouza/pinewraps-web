@@ -384,7 +384,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
 
               <div>
                 <label htmlFor="phone" className={labelClasses}>
-                  Phone Number
+                  Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
@@ -394,6 +394,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                   onChange={handleChange}
                   placeholder="Enter your phone number"
                   className={inputClasses('phone')}
+                  required
                 />
                 {errors.phone && (
                   <p className="mt-2 text-sm text-red-600">{errors.phone}</p>
@@ -486,7 +487,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
             <div className="space-y-6">
               <div>
                 <label htmlFor="deliveryMethod" className={labelClasses}>
-                  Delivery Method
+                  Delivery Method <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div
@@ -543,7 +544,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="deliveryDate" className={labelClasses}>
-                      Pickup Date
+                      Pickup Date <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -553,11 +554,12 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                       onChange={handleChange}
                       min={getMinDate()}
                       className={inputClasses('deliveryDate')}
+                      required
                     />
                   </div>
                   <div>
                     <label htmlFor="deliveryTime" className={labelClasses}>
-                      Pickup Time
+                      Pickup Time <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="deliveryTime"
@@ -682,7 +684,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                 <div className="space-y-6">
                   <div>
                     <label htmlFor="address" className={labelClasses}>
-                      Street Address
+                      Street Address <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -690,8 +692,9 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
-                      placeholder="House No, Building Name, Street"
+                      placeholder="Enter your street address"
                       className={inputClasses('address')}
+                      required
                     />
                     {errors.address && (
                       <p className="mt-2 text-sm text-red-600">{errors.address}</p>
@@ -715,7 +718,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
 
                   <div>
                     <label htmlFor="emirate" className={labelClasses}>
-                      Emirate
+                      Emirate <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="emirate"
@@ -723,6 +726,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                       value={formData.emirate}
                       onChange={handleChange}
                       className={inputClasses('emirate')}
+                      required
                     >
                       <option value="">Select Emirate</option>
                       {emirates.map((emirate) => (
@@ -736,38 +740,38 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="city" className={labelClasses}>
-                        City
-                      </label>
-                      <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        className={inputClasses('city')}
-                      />
-                      {errors.city && (
-                        <p className="mt-2 text-sm text-red-600">{errors.city}</p>
-                      )}
-                    </div>
+                  <div>
+                    <label htmlFor="city" className={labelClasses}>
+                      City <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      placeholder="Enter your city"
+                      className={inputClasses('city')}
+                      required
+                    />
+                    {errors.city && (
+                      <p className="mt-2 text-sm text-red-600">{errors.city}</p>
+                    )}
+                  </div>
 
-                    <div>
-                      <label htmlFor="pincode" className={labelClasses}>
-                        PIN Code (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        id="pincode"
-                        name="pincode"
-                        value={formData.pincode}
-                        onChange={handleChange}
-                        placeholder="Enter PIN code (optional)"
-                        className={inputClasses('pincode')}
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="pincode" className={labelClasses}>
+                      PIN Code (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      id="pincode"
+                      name="pincode"
+                      value={formData.pincode}
+                      onChange={handleChange}
+                      placeholder="Enter PIN code (optional)"
+                      className={inputClasses('pincode')}
+                    />
                   </div>
 
                   <div>
@@ -796,7 +800,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="deliveryDate" className={labelClasses}>
-                      Delivery Date
+                      Delivery Date <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -806,6 +810,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                       onChange={handleChange}
                       min={getMinDate()}
                       className={inputClasses('deliveryDate')}
+                      required
                     />
                     {errors.deliveryDate && (
                       <p className="mt-2 text-sm text-red-600">{errors.deliveryDate}</p>
@@ -813,7 +818,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                   </div>
                   <div>
                     <label htmlFor="deliveryTime" className={labelClasses}>
-                      Delivery Time
+                      Delivery Time <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="deliveryTime"
@@ -821,7 +826,7 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                       value={formData.deliveryTime}
                       onChange={handleChange}
                       className={inputClasses('deliveryTime')}
-                      disabled={!formData.emirate || !formData.deliveryDate}
+                      required
                     >
                       <option value="">Select Time Slot</option>
                       {availableTimeSlots.map((slot) => (
@@ -830,12 +835,6 @@ export default function ShippingForm({ onSubmit, onDeliveryMethodChange }: Shipp
                         </option>
                       ))}
                     </select>
-                    {!formData.emirate && (
-                      <p className="mt-2 text-sm text-gray-500">Please select an emirate first to view available time slots</p>
-                    )}
-                    {!formData.deliveryDate && (
-                      <p className="mt-2 text-sm text-gray-500">Please select a delivery date first to view available time slots</p>
-                    )}
                     {errors.deliveryTime && (
                       <p className="mt-2 text-sm text-red-600">{errors.deliveryTime}</p>
                     )}

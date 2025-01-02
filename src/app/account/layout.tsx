@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, redirect } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import PageTitle from '@/components/ui/page-title'
-import { User, Package, HeadphonesIcon, MapPin, Award } from 'lucide-react'
+import { User, Package, HeadphonesIcon, MapPin, Award, Trash2 } from 'lucide-react'
 import { useEffect } from 'react'
 
 const accountTabs = [
@@ -32,6 +32,12 @@ const accountTabs = [
     name: 'Support',
     href: '/account/support',
     icon: HeadphonesIcon
+  },
+  {
+    name: 'Delete Account',
+    href: '/account/delete',
+    icon: Trash2,
+    className: 'text-red-600 hover:text-red-700'
   }
 ]
 
@@ -78,6 +84,7 @@ export default function AccountLayout({
                   href={tab.href}
                   className={`
                     group inline-flex items-center whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                    ${tab.className || ''}
                     ${isActive
                       ? 'border-black text-black'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -88,7 +95,7 @@ export default function AccountLayout({
                     mr-2 h-5 w-5
                     ${isActive
                       ? 'text-black'
-                      : 'text-gray-400 group-hover:text-gray-500'
+                      : tab.className || 'text-gray-400 group-hover:text-gray-500'
                     }
                   `} />
                   <span className="whitespace-nowrap">{tab.name}</span>
