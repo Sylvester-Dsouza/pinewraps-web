@@ -26,7 +26,7 @@ export default function ZoomableImage({ src, alt, onLoad }: Props) {
   }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || isMobile) return;
+    if (!containerRef.current || !isZoomed || isMobile) return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -35,31 +35,21 @@ export default function ZoomableImage({ src, alt, onLoad }: Props) {
     setZoomPosition({ x, y });
   };
 
-  const handleMouseEnter = () => {
-    if (!isMobile) setIsZoomed(true);
-  };
-
-  const handleMouseLeave = () => {
-    if (!isMobile) setIsZoomed(false);
+  const handleClick = () => {
+    setIsZoomed(!isZoomed);
   };
 
   const handleTouchStart = () => {
-    if (isMobile) setIsZoomed(true);
-  };
-
-  const handleTouchEnd = () => {
-    if (isMobile) setIsZoomed(false);
+    if (isMobile) setIsZoomed(!isZoomed);
   };
 
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden cursor-zoom-in"
+      className={`relative w-full h-full overflow-hidden ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
       onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
       onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
     >
       {/* Original Image */}
       <div ref={imageRef} className="relative w-full h-full">
